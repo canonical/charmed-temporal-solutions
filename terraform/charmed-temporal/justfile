@@ -1,0 +1,19 @@
+# Justfile for Terraform solution
+
+default:
+    @just --list
+
+fmt:
+    terraform fmt -recursive
+
+validate:
+    terraform init -backend=false
+    terraform validate
+
+lint:
+    tflint --chdir .
+
+test:
+    terraform init -backend=false
+    terraform apply -auto-approve -var-file=test/terraform_test.tfvars
+    terraform destroy -auto-approve -var-file=test/terraform_test.tfvars
