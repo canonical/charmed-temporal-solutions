@@ -59,6 +59,6 @@ output "s3_integrator_requirer" {
   description = "Map containing the app_name and the requires of the s3 integrator requirer charm."
   value = {
     app_name = local.app_names.temporal
-    requires = local.requires.temporal.s3_parameters
+    requires = local.requires.temporal.s3_paramaters
   }
 }
