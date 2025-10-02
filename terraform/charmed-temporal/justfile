@@ -1,19 +1,54 @@
-# Justfile for Terraform solution
+set export := true # Just variables are exported into environment variables
 
+# Default: show all recipes
 default:
     @just --list
 
-fmt:
+# Initialize terraform
+initialize:
+    #!/usr/bin/bash
+    if [ ! -d ".terraform" ]; then
+        terraform init -backend=false
+    fi
+
+# Destroy model if exists
+destroy-model:
+    juju destroy-model --no-prompt --destroy-storage terraform || true
+
+# Add a fresh model
+add-model: (destroy-model)
+    juju add-model terraform
+
+# Terraform fmt
+fmt: (initialize)
     terraform fmt -recursive
 
-validate:
-    terraform init -backend=false
+# Terraform validate
+validate: (initialize)
     terraform validate
 
+# Lint
 lint:
-    tflint --chdir .
+    tflint
 
+# Apply with variables file
+apply variables_file: (initialize)
+    terraform apply -auto-approve -var-file="${variables_file}"
+
+# Destroy with variables file
+destroy variables_file:
+    terraform destroy -auto-approve -var-file="${variables_file}"
+    just destroy-model
+
+# Full test (create model, apply, wait, cleanup)
 test:
-    terraform init -backend=false
-    terraform apply -auto-approve -var-file=test/terraform_test.tfvars
-    terraform destroy -auto-approve -var-file=test/terraform_test.tfvars
+    #!/usr/bin/bash
+    set -euxo pipefail
+
+    trap 'just destroy "./test/terraform_test.tfvars"' EXIT
+
+    just add-model
+    just apply "./test/terraform_test.tfvars"
+
+    # Optional: wait for workloads to settle
+    juju wait-for model terraform --timeout=600
