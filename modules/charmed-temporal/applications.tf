@@ -1,22 +1,35 @@
+module "postgresql" {
+  source   = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
+  model    = var.model
+  app_name = var.postgresql.app_name
+  channel  = var.postgresql.channel
+  units    = var.postgresql.units
+  config   = var.postgresql.config
+}
 
-locals {
-  app_names = {
-    postgresql     = module.postgresql.application_name
-    temporal       = module.temporal_server.app_name
-    temporal_ui    = module.temporal_ui.app_name
-    temporal_admin = module.temporal_admin.app_name
-  }
+module "temporal_server" {
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = var.temporal_server.app_name
+  channel  = var.temporal_server.channel
+  units    = var.temporal_server.units
+  config   = var.temporal_server.config
+}
 
-  provides = {
-    postgresql     = module.postgresql.provides
-    temporal       = module.temporal_server.provides
-    temporal_ui    = module.temporal_ui.provides
-    temporal_admin = module.temporal_admin.provides
-  }
+module "temporal_ui" {
+  source   = "git::https://github.com/canonical/temporal-ui-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = var.temporal_ui.app_name
+  channel  = var.temporal_ui.channel
+  units    = var.temporal_ui.units
+  config   = var.temporal_ui.config
+}
 
-  requires = {
-    postgresql     = module.postgresql.requires
-    temporal       = module.temporal_server.requires
-    temporal_ui    = module.temporal_ui.requires
-  }
+module "temporal_admin" {
+  source   = "git::https://github.com/canonical/temporal-admin-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = var.temporal_admin.app_name
+  channel  = var.temporal_admin.channel
+  units    = var.temporal_admin.units
+  config   = var.temporal_admin.config
 }

@@ -1,37 +1,41 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
 
 locals {
-  cos_enabled = var.cos_configuration
+  cos_enabled             = var.cos_configuration
+  grafana_agent_app_name  = "grafana-agent"
 }
 
-# Deploy grafana-agent if enabled and no existing one is provided
-module "grafana_agent" {
-  count  = local.cos_enabled && var.existing_grafana_agent_name == null ? 1 : 0
-  source = "git::https://github.com/canonical/grafana-agent-k8s-operator//terraform?ref=main"
-  model  = var.model
+# Deploy grafana-agent-k8s using juju_application if COS is enabled
+resource "juju_application" "grafana_agent_k8s" {
+  count = local.cos_enabled && var.existing_grafana_agent_name == null ? 1 : 0
 
-  app_name = "grafana-agent"
-  channel  = "latest/stable"
-  revision = 0
-  units    = 1
-  config   = {}
+  name      = local.grafana_agent_app_name
+  model     = var.model
+  charm     = "grafana-agent-k8s"
+  channel   = "1/stable"
+  trust     = true
+  units     = 1
+  config    = {}
 }
 
+# Resolve the name of grafana-agent (existing or newly deployed)
 locals {
-  grafana_agent_app_name = local.cos_enabled ? (
+  grafana_agent_resolved_name = local.cos_enabled ? (
     var.existing_grafana_agent_name != null
       ? var.existing_grafana_agent_name
-      : module.grafana_agent[0].app_name
+      : juju_application.grafana_agent_k8s[0].name
   ) : null
 }
 
-# Integrations between Grafana agent and Temporal Server
+# Integration: Grafana Agent <-> Temporal (metrics)
 resource "juju_integration" "grafana_agent_to_temporal" {
   count = local.cos_enabled ? 1 : 0
   model = var.model
 
   application {
-    name     = local.grafana_agent_app_name
-    endpoint = "send-remote-write"
+    name     = local.grafana_agent_resolved_name
+    endpoint = "metrics-endpoint"
   }
 
   application {
@@ -40,12 +44,13 @@ resource "juju_integration" "grafana_agent_to_temporal" {
   }
 }
 
+# Integration: Grafana Agent <-> Temporal (dashboards)
 resource "juju_integration" "grafana_dashboard_to_temporal" {
   count = local.cos_enabled ? 1 : 0
   model = var.model
 
   application {
-    name     = local.grafana_agent_app_name
+    name     = local.grafana_agent_resolved_name
     endpoint = "grafana-dashboard"
   }
 
@@ -54,4 +59,3 @@ resource "juju_integration" "grafana_dashboard_to_temporal" {
     endpoint = local.provides.temporal.grafana_dashboard
   }
 }
-
