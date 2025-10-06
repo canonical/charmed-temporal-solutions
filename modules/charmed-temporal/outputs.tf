@@ -46,11 +46,9 @@ output "openfga_requirer" {
 
 # Grafana Agent (only if cos_configuration = true)
 output "grafana_agent_k8s" {
-  description = "Map containing the app_name, provides, and requires endpoints of the grafana-agent-k8s charm used."
-  value = local.cos_enabled ? {
-    app_name  = local.grafana_agent_app_name
-    provides  = try(module.grafana_agent[0].provides, {})
-    requires  = try(module.grafana_agent[0].requires, {})
+  description = "grafana-agent-k8s application name when COS is enabled."
+  value = var.cos_configuration ? {
+    app_name = local.grafana_agent_resolved_name
   } : {}
 }
 

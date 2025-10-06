@@ -1,10 +1,10 @@
 module "postgresql" {
-  source   = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
-  model    = var.model
-  app_name = var.postgresql.app_name
-  channel  = var.postgresql.channel
-  units    = var.postgresql.units
-  config   = var.postgresql.config
+  source          = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
+  juju_model_name = var.model
+  app_name        = var.postgresql.app_name
+  channel         = var.postgresql.channel
+  units           = var.postgresql.units
+  config          = var.postgresql.config
 }
 
 module "temporal_server" {
