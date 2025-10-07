@@ -37,8 +37,11 @@ apply variables_file: (initialize)
 
 # Destroy with variables file
 destroy variables_file:
-    terraform destroy -auto-approve -var-file="${variables_file}"
-    just destroy-model
+    #!/usr/bin/bash
+    set -euxo pipefail
+    terraform destroy -auto-approve -var-file="${variables_file}" || true
+    echo "Forcing model cleanup..."
+    juju destroy-model --no-prompt --destroy-storage temporal-test || true
 
 # Full test (create model, apply, wait, cleanup)
 test:
