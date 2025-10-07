@@ -53,4 +53,4 @@ test:
     just add-model
     just apply "./test/terraform_test.tfvars"
 
-    juju wait-for model temporal-test --query="forEach(units, unit => unit.workload-status == 'blocked' ? true : false)"
+    juju wait-for model temporal-test --query="every(units, u => u.workload-status == 'active' || u.workload-status == 'idle')" --timeout=600s
