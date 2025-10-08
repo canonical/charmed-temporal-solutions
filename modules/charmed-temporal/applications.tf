@@ -1,3 +1,4 @@
+# tflint-ignore: terraform_module_pinned_source
 module "postgresql" {
   source          = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
   juju_model_name = var.model
