@@ -1,4 +1,3 @@
-
 module "postgresql" {
   # tflint-ignore: terraform_module_pinned_source
   source          = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
@@ -9,10 +8,37 @@ module "postgresql" {
   config          = var.postgresql.config
 }
 
-module "temporal_server" {
+module "temporal_frontend" {
   source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
   model    = var.model
-  app_name = var.temporal_server.app_name
+  app_name = "temporal-frontend"
+  channel  = var.temporal_server.channel
+  units    = var.temporal_server.units
+  config   = var.temporal_server.config
+}
+
+module "temporal_history" {
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = "temporal-history"
+  channel  = var.temporal_server.channel
+  units    = var.temporal_server.units
+  config   = var.temporal_server.config
+}
+
+module "temporal_matching" {
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = "temporal-matching"
+  channel  = var.temporal_server.channel
+  units    = var.temporal_server.units
+  config   = var.temporal_server.config
+}
+
+module "temporal_worker" {
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  model    = var.model
+  app_name = "temporal-worker"
   channel  = var.temporal_server.channel
   units    = var.temporal_server.units
   config   = var.temporal_server.config

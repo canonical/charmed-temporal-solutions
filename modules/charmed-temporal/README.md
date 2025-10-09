@@ -5,6 +5,25 @@ For detailed usage and provider configuration, refer to the [Terraform provider 
 
 ---
 
+## Architecture Overview
+
+This module deploys the following components and their relations:
+
+| Component | Charm | Role |
+|------------|--------|------|
+| `temporal-frontend` | `temporal-k8s` | Handles client requests and routes workflow tasks. |
+| `temporal-history` | `temporal-k8s` | Manages workflow event histories. |
+| `temporal-matching` | `temporal-k8s` | Manages task queues and matching logic. |
+| `temporal-worker` | `temporal-k8s` | Executes workflows and activities. |
+| `temporal-admin` | `temporal-admin-k8s` | Manages Temporal namespaces, schemas, and system configuration. |
+| `temporal-ui` | `temporal-ui-k8s` | Provides the web interface for viewing workflows. |
+| `postgresql-k8s` | `postgresql-k8s` | Backend database for persistence and visibility data. |
+| *(Optional)* `grafana-agent-k8s` | `grafana-agent-k8s` | Observability integration for COS. |
+
+All Temporal services connect to PostgreSQL for both **primary (db)** and **visibility** stores and to **Temporal Admin** for schema management.
+
+---
+
 ## API
 
 ### Inputs
@@ -42,11 +61,34 @@ Upon apply, this module exports the following outputs:
 |------|-------------|
 | `applications` | Map containing all charm modules that make up the Charmed Temporal deployment |
 | `frontend_certificates_requirer` | Map with `app_name` and `requires` endpoint for TLS certificates |
-| `server_nginx_route_requirer` | Map with `app_name` and `requires` endpoint for Temporal Server’s NGINX route |
-| `ui_nginx_route_requirer` | Map with `app_name` and `requires` endpoint for Temporal UI’s NGINX route |
+| `server_nginx_route_requirer` | Map with `app_name` and `requires` endpoint for Temporal Server's NGINX route |
+| `ui_nginx_route_requirer` | Map with `app_name` and `requires` endpoint for Temporal UI's NGINX route |
 | `openfga_requirer` | Map with `app_name` and `requires` endpoint for OpenFGA |
 | `s3_integrator_requirer` | Map with `app_name` and `requires` endpoint for the S3 integrator charm |
 | `grafana_agent_k8s` | Map containing the deployed or reused Grafana Agent when COS is enabled |
+
+---
+
+## Relations
+
+The following relations are automatically established:
+
+| Integration | Purpose |
+|--------------|----------|
+| `temporal-frontend ↔ postgresql` | Main database connection. |
+| `temporal-frontend ↔ postgresql (visibility)` | Visibility database connection. |
+| `temporal-history ↔ postgresql` | History persistence. |
+| `temporal-history ↔ postgresql (visibility)` | History visibility store. |
+| `temporal-matching ↔ postgresql` | Matching persistence. |
+| `temporal-matching ↔ postgresql (visibility)` | Matching visibility store. |
+| `temporal-worker ↔ postgresql` | Worker persistence. |
+| `temporal-worker ↔ postgresql (visibility)` | Worker visibility store. |
+| `temporal-admin ↔ temporal-frontend` | Schema management for frontend. |
+| `temporal-admin ↔ temporal-history` | Schema management for history. |
+| `temporal-admin ↔ temporal-matching` | Schema management for matching. |
+| `temporal-admin ↔ temporal-worker` | Schema management for worker. |
+| `temporal-frontend ↔ temporal-ui` | UI access integration. |
+| *(Optional)* `grafana-agent ↔ temporal-*` | Metrics integration when COS is enabled. |
 
 ---
 
@@ -87,7 +129,8 @@ If an existing Grafana Agent is already deployed in the same model, reuse it ins
 ```bash
 terraform apply -var cos_configuration=true -var existing_grafana_agent_name="grafana-agent"
 ```
---
+
+---
 
 ### Cleanup
 
@@ -99,9 +142,20 @@ just destroy ./test/terraform_test.tfvars
 
 ---
 
-### Notes
+## Notes
 
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
+- The Temporal Worker is pre-provisioned for activity execution.
 - Revisions default to `0`, meaning the latest charm revision for the given channel will be used automatically.
 - `existing_grafana_agent_name` is only used when `cos_configuration=true`. If set without COS enabled, it will be ignored.
+- Ensure outbound connectivity from your cluster to `api.charmhub.io` for charm downloads.
+
+---
+
+## Repository References
+
+- [Temporal Kubernetes Operator](https://github.com/canonical/temporal-k8s-operator)
+- [Temporal Admin Operator](https://github.com/canonical/temporal-admin-k8s-operator)
+- [Temporal UI Operator](https://github.com/canonical/temporal-ui-k8s-operator)
+- [PostgreSQL K8s Operator](https://github.com/canonical/postgresql-k8s-operator)

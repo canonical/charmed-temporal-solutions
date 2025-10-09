@@ -1,59 +1,167 @@
-# Temporal ↔ PostgreSQL (main DB)
-resource "juju_integration" "temporal_to_postgresql" {
+# Temporal Frontend ↔ PostgreSQL
+resource "juju_integration" "frontend_to_postgresql" {
   model = var.model
-
   application {
-    name     = local.app_names.temporal
-    endpoint = local.requires.temporal.db
+    name     = "temporal-frontend"
+    endpoint = module.temporal_frontend.requires.db
   }
-
   application {
-    name     = local.app_names.postgresql
-    endpoint = local.provides.postgresql.database
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
   }
 }
 
-# Temporal ↔ PostgreSQL (visibility DB)
-resource "juju_integration" "temporal_visibility_to_postgresql" {
+# Temporal Frontend ↔ PostgreSQL (visibility)
+resource "juju_integration" "frontend_visibility_to_postgresql" {
   model = var.model
-
   application {
-    name     = local.app_names.temporal
-    endpoint = local.requires.temporal.visibility
+    name     = "temporal-frontend"
+    endpoint = module.temporal_frontend.requires.visibility
   }
-
   application {
-    name     = local.app_names.postgresql
-    endpoint = local.provides.postgresql.database
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
   }
 }
 
-# Temporal ↔ UI
-resource "juju_integration" "temporal_to_ui" {
+# Temporal Frontend ↔ UI
+resource "juju_integration" "frontend_to_ui" {
   model = var.model
-
   application {
-    name     = local.app_names.temporal
-    endpoint = local.requires.temporal.ui
+    name     = "temporal-frontend"
+    endpoint = module.temporal_frontend.requires.ui
   }
-
   application {
-    name     = local.app_names.temporal_ui
-    endpoint = local.provides.temporal_ui.ui
+    name     = var.temporal_ui.app_name
+    endpoint = module.temporal_ui.provides.ui
   }
 }
 
-# Temporal ↔ Admin
-resource "juju_integration" "temporal_to_admin" {
+# Temporal Frontend ↔ Admin
+resource "juju_integration" "frontend_to_admin" {
   model = var.model
-
   application {
-    name     = local.app_names.temporal
-    endpoint = local.requires.temporal.admin
+    name     = "temporal-frontend"
+    endpoint = module.temporal_frontend.requires.admin
   }
-
   application {
-    name     = local.app_names.temporal_admin
-    endpoint = local.provides.temporal_admin.admin
+    name     = var.temporal_admin.app_name
+    endpoint = module.temporal_admin.provides.admin
+  }
+}
+# Temporal History ↔ PostgreSQL
+resource "juju_integration" "history_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-history"
+    endpoint = module.temporal_history.requires.db
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal Matching ↔ PostgreSQL
+resource "juju_integration" "matching_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-matching"
+    endpoint = module.temporal_matching.requires.db
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal History ↔ PostgreSQL (visibility)
+resource "juju_integration" "history_visibility_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-history"
+    endpoint = module.temporal_history.requires.visibility
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal Matching ↔ PostgreSQL (visibility)
+resource "juju_integration" "matching_visibility_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-matching"
+    endpoint = module.temporal_matching.requires.visibility
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal Admin ↔ Temporal History
+resource "juju_integration" "admin_to_history" {
+  model = var.model
+  application {
+    name     = var.temporal_admin.app_name
+    endpoint = module.temporal_admin.provides.admin
+  }
+  application {
+    name     = "temporal-history"
+    endpoint = module.temporal_history.requires.admin
+  }
+}
+
+# Temporal Admin ↔ Temporal Matching
+resource "juju_integration" "admin_to_matching" {
+  model = var.model
+  application {
+    name     = var.temporal_admin.app_name
+    endpoint = module.temporal_admin.provides.admin
+  }
+  application {
+    name     = "temporal-matching"
+    endpoint = module.temporal_matching.requires.admin
+  }
+}
+
+# Temporal Worker ↔ PostgreSQL
+resource "juju_integration" "worker_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-worker"
+    endpoint = module.temporal_worker.requires.db
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal Worker ↔ PostgreSQL (visibility)
+resource "juju_integration" "worker_visibility_to_postgresql" {
+  model = var.model
+  application {
+    name     = "temporal-worker"
+    endpoint = module.temporal_worker.requires.visibility
+  }
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+}
+
+# Temporal Admin ↔ Temporal Worker
+resource "juju_integration" "admin_to_worker" {
+  model = var.model
+  application {
+    name     = var.temporal_admin.app_name
+    endpoint = module.temporal_admin.provides.admin
+  }
+  application {
+    name     = "temporal-worker"
+    endpoint = module.temporal_worker.requires.admin
   }
 }

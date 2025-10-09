@@ -1,28 +1,32 @@
-
 output "applications" {
   description = "All charm modules which make up this product module."
   value = {
-    postgresql     = module.postgresql
-    temporal       = module.temporal_server
+    postgresql = module.postgresql
+    temporal = {
+      frontend = module.temporal_frontend
+      history  = module.temporal_history
+      matching = module.temporal_matching
+      worker   = module.temporal_worker
+    }
     temporal_ui    = module.temporal_ui
     temporal_admin = module.temporal_admin
   }
 }
 
-# Requirers exposed by Temporal Server
+# Requirers exposed by Temporal services
 output "frontend_certificates_requirer" {
-  description = "Map containing the app_name and the requires of the TLS requirer charm."
+  description = "Map containing the app_name and the requires of the TLS requirer charm (frontend)."
   value = {
-    app_name = local.app_names.temporal
-    requires = local.requires.temporal.frontend_certificates
+    app_name = "temporal-frontend"
+    requires = module.temporal_frontend.requires.frontend_certificates
   }
 }
 
 output "server_nginx_route_requirer" {
-  description = "Map containing the app_name and the requires of the nginx route requirer charm (server)."
+  description = "Map containing the app_name and the requires of the nginx route requirer charm (frontend)."
   value = {
-    app_name = local.app_names.temporal
-    requires = local.requires.temporal.nginx_route
+    app_name = "temporal-frontend"
+    requires = module.temporal_frontend.requires.nginx_route
   }
 }
 
@@ -30,17 +34,17 @@ output "server_nginx_route_requirer" {
 output "ui_nginx_route_requirer" {
   description = "Map containing the app_name and the requires of the nginx route requirer charm (UI)."
   value = {
-    app_name = local.app_names.temporal_ui
-    requires = local.requires.temporal_ui.nginx_route
+    app_name = var.temporal_ui.app_name
+    requires = module.temporal_ui.requires.nginx_route
   }
 }
 
-# OpenFGA integration (from Temporal Server)
+# OpenFGA integration (from Temporal Frontend)
 output "openfga_requirer" {
   description = "Map containing the app_name and the requires of the OpenFGA requirer charm."
   value = {
-    app_name = local.app_names.temporal
-    requires = local.requires.temporal.openfga
+    app_name = "temporal-frontend"
+    requires = module.temporal_frontend.requires.openfga
   }
 }
 
@@ -52,11 +56,11 @@ output "grafana_agent_k8s" {
   } : {}
 }
 
-# S3 Integrator (from Temporal Server)
+# S3 Integrator (from Temporal Frontend)
 output "s3_integrator_requirer" {
   description = "Map containing the app_name and the requires of the s3 integrator requirer charm."
   value = {
-    app_name = local.app_names.temporal
-    requires = local.requires.temporal.s3_paramaters
+    app_name = "temporal-frontend"
+    requires = module.temporal_frontend.requires.s3_paramaters
   }
 }
