@@ -11,6 +11,7 @@ on:
 jobs:
   pull-request-terraform-checks:
     name: PR Terraform checks
+    timeout-minutes: 60
     uses: canonical/workflows-team/.github/workflows/terraform.yaml@main
     with:
       module-directory: ./modules/charmed-temporal
