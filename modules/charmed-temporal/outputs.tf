@@ -53,6 +53,7 @@ output "grafana_agent_k8s" {
   description = "grafana-agent-k8s application name when COS is enabled."
   value = var.cos_configuration ? {
     app_name = local.grafana_agent_resolved_name
+    app = module.grafana_agent_k8s
   } : {}
 }
 
