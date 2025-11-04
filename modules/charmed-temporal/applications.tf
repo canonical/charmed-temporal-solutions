@@ -1,7 +1,7 @@
 module "postgresql" {
   # tflint-ignore: terraform_module_pinned_source
-  source          = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=main"
-  juju_model_name = var.model
+  source          = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=fix/14_edge_update_juju_provider"
+  juju_model_uuid = var.model_uuid
   app_name        = var.postgresql.app_name
   channel         = var.postgresql.channel
   units           = var.postgresql.units
@@ -9,8 +9,8 @@ module "postgresql" {
 }
 
 module "temporal_frontend" {
-  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = "temporal-frontend"
   channel  = var.temporal_server.channel
   units    = var.temporal_server.units
@@ -18,8 +18,8 @@ module "temporal_frontend" {
 }
 
 module "temporal_history" {
-  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = "temporal-history"
   channel  = var.temporal_server.channel
   units    = var.temporal_server.units
@@ -27,8 +27,8 @@ module "temporal_history" {
 }
 
 module "temporal_matching" {
-  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = "temporal-matching"
   channel  = var.temporal_server.channel
   units    = var.temporal_server.units
@@ -36,8 +36,8 @@ module "temporal_matching" {
 }
 
 module "temporal_worker" {
-  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = "temporal-worker"
   channel  = var.temporal_server.channel
   units    = var.temporal_server.units
@@ -45,8 +45,8 @@ module "temporal_worker" {
 }
 
 module "temporal_ui" {
-  source   = "git::https://github.com/canonical/temporal-ui-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-ui-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = var.temporal_ui.app_name
   channel  = var.temporal_ui.channel
   units    = var.temporal_ui.units
@@ -54,8 +54,8 @@ module "temporal_ui" {
 }
 
 module "temporal_admin" {
-  source   = "git::https://github.com/canonical/temporal-admin-k8s-operator//terraform?ref=track/1.23"
-  model    = var.model
+  source   = "git::https://github.com/canonical/temporal-admin-k8s-operator//terraform?ref=fix/update_juju_provider"
+  model_uuid    = var.model_uuid
   app_name = var.temporal_admin.app_name
   channel  = var.temporal_admin.channel
   units    = var.temporal_admin.units
