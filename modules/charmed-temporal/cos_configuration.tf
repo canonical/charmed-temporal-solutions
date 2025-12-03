@@ -25,7 +25,7 @@ locals {
 resource "juju_application" "grafana_agent_k8s" {
   count = local.cos_enabled && var.existing_grafana_agent_name == null ? 1 : 0
   name  = local.grafana_agent_app_name
-  model = var.model
+  model_uuid = var.model_uuid
   charm {
     name    = "grafana-agent-k8s"
     channel = "1/stable"
@@ -46,7 +46,7 @@ locals {
 # COS integrations for Temporal frontend, history, and matching
 resource "juju_integration" "grafana_to_temporal_frontend" {
   count = local.cos_enabled ? 1 : 0
-  model = var.model
+  model_uuid = var.model_uuid
   application {
     name     = local.grafana_agent_resolved_name
     endpoint = "metrics-endpoint"
@@ -59,7 +59,7 @@ resource "juju_integration" "grafana_to_temporal_frontend" {
 
 resource "juju_integration" "grafana_to_temporal_history" {
   count = local.cos_enabled ? 1 : 0
-  model = var.model
+  model_uuid = var.model_uuid
   application {
     name     = local.grafana_agent_resolved_name
     endpoint = "metrics-endpoint"
@@ -72,7 +72,7 @@ resource "juju_integration" "grafana_to_temporal_history" {
 
 resource "juju_integration" "grafana_to_temporal_matching" {
   count = local.cos_enabled ? 1 : 0
-  model = var.model
+  model_uuid = var.model_uuid
   application {
     name     = local.grafana_agent_resolved_name
     endpoint = "metrics-endpoint"
@@ -85,7 +85,7 @@ resource "juju_integration" "grafana_to_temporal_matching" {
 
 resource "juju_integration" "grafana_to_temporal_worker" {
   count = local.cos_enabled ? 1 : 0
-  model = var.model
+  model_uuid = var.model_uuid
   application {
     name     = local.grafana_agent_resolved_name
     endpoint = "metrics-endpoint"

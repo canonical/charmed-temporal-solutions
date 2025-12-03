@@ -1,2 +1,1 @@
-model = "temporal-test"
-
+model_uuid = "temporal-test"

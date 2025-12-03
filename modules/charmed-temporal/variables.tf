@@ -1,5 +1,10 @@
 variable "model" {
-  description = "Reference to an existing model resource or data source for the model to deploy to."
+  description = "Reference to an existing model resource or data source for the model to deploy to. (Deprecated; prefer `model_uuid`)"
+  type        = string
+}
+
+variable "model_uuid" {
+  description = "UUID of the juju model to deploy to. Preferred for provider v1.0.0."
   type        = string
 }
 
