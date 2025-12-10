@@ -19,6 +19,15 @@ destroy-model:
 add-model: (destroy-model)
     juju add-model temporal-test
 
+[private]
+validate_test_tfvars variables_file:
+    #!/usr/bin/bash
+    MODEL_UUID=$(juju show-model temporal-test --format=json | jq -r '."temporal-test"["model-uuid"]')
+    if ! juju show-model "${MODEL_UUID}" >/dev/null 2>&1; then
+        exit 1
+    fi
+    echo "model_uuid = \"${MODEL_UUID}\"" >> "${variables_file}"
+
 # Terraform fmt
 fmt: (initialize)
     terraform fmt -recursive
@@ -43,6 +52,8 @@ destroy variables_file:
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
 
+    sed '/model_uuid/d' -i "${variables_file}"
+
 # Full test (create model, apply, wait, cleanup)
 test:
     #!/usr/bin/bash
@@ -51,6 +62,9 @@ test:
     trap 'just destroy "./test/terraform_test.tfvars"' EXIT
 
     just add-model
+
+    just validate_test_tfvars "./test/terraform_test.tfvars"
+
     just apply "./test/terraform_test.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true

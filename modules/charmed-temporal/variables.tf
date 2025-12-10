@@ -19,7 +19,7 @@ variable "postgresql" {
   description = "Inputs for postgresql-k8s charm module."
   type = object({
     app_name = optional(string, "postgres")
-    channel  = optional(string, "14/stable")
+    channel  = optional(string, "16/edge")
     revision = optional(number, 0)
     units    = optional(number, 1)
     config   = optional(map(string), {})
