@@ -1,5 +1,5 @@
 variable "model_uuid" {
-  description = "UUID of the juju model to deploy to. Preferred for provider v1.0.0."
+  description = "UUID of the juju model to deploy to."
   type        = string
 }
 
@@ -19,6 +19,7 @@ variable "postgresql" {
   description = "Inputs for postgresql-k8s charm module."
   type = object({
     app_name = optional(string, "postgres")
+    # TODO: Update channel whenever 16/stable is released. Related issue https://github.com/canonical/charmed-temporal-solutions/issues/12
     channel  = optional(string, "16/edge")
     revision = optional(number, 0)
     units    = optional(number, 1)

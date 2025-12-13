@@ -1,5 +1,6 @@
 module "postgresql" {
-  # tflint-ignore: terraform_module_pinned_source
+  # tflint-ignore: terraform_module_pinned_source 16/edge.
+  # TODO: update ref to stable hash, currently it points to 1
   source     = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=c5b1378aea463ef9922bd11d1778bb5ca7ed5114"
   juju_model = var.model_uuid
   app_name   = var.postgresql.app_name
