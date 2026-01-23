@@ -58,8 +58,8 @@ variable "cos_configuration" {
   default     = false
 }
 
-variable "existing_grafana_agent_name" {
-  description = "Name of an existing grafana-agent-k8s deployed in the model to be reused. If cos_configuration is not true, this input is not used."
+variable "existing_otel_collector_name" {
+  description = "Name of an existing opentelemetry-collector-k8s deployed in the model to be reused. If cos_configuration is not true, this input is not used."
   type        = string
   default     = null
 }
