@@ -48,11 +48,11 @@ output "openfga_requirer" {
   }
 }
 
-# Grafana Agent (only if cos_configuration = true)
-output "grafana_agent_k8s" {
-  description = "grafana-agent-k8s application name when COS is enabled."
+# OpenTelemetry Collector (only if cos_configuration = true)
+output "otel_collector_k8s" {
+  description = "opentelemetry-collector-k8s application name when COS is enabled."
   value = var.cos_configuration ? {
-    app_name = local.grafana_agent_resolved_name
+    app_name = local.otel_collector_resolved_name
   } : {}
 }
 

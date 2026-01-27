@@ -1,6 +1,6 @@
 locals {
-  cos_enabled            = var.cos_configuration
-  grafana_agent_app_name = "grafana-agent"
+  cos_enabled             = var.cos_configuration
+  otel_collector_app_name = "otel-collector"
   app_names = {
     postgresql     = var.postgresql.app_name
     temporal_front = "temporal-frontend"
@@ -22,13 +22,13 @@ locals {
   }
 }
 
-resource "juju_application" "grafana_agent_k8s" {
-  count      = local.cos_enabled && var.existing_grafana_agent_name == null ? 1 : 0
-  name       = local.grafana_agent_app_name
+resource "juju_application" "otel_collector_k8s" {
+  count      = local.cos_enabled && var.existing_otel_collector_name == null ? 1 : 0
+  name       = local.otel_collector_app_name
   model_uuid = var.model_uuid
   charm {
-    name    = "grafana-agent-k8s"
-    channel = "1/stable"
+    name    = "opentelemetry-collector-k8s"
+    channel = "2/stable"
   }
   trust  = true
   units  = 1
@@ -36,19 +36,19 @@ resource "juju_application" "grafana_agent_k8s" {
 }
 
 locals {
-  grafana_agent_resolved_name = local.cos_enabled ? (
-    var.existing_grafana_agent_name != null
-    ? var.existing_grafana_agent_name
-    : juju_application.grafana_agent_k8s[0].name
+  otel_collector_resolved_name = local.cos_enabled ? (
+    var.existing_otel_collector_name != null
+    ? var.existing_otel_collector_name
+    : juju_application.otel_collector_k8s[0].name
   ) : null
 }
 
 # COS integrations for Temporal frontend, history, and matching
-resource "juju_integration" "grafana_to_temporal_frontend" {
+resource "juju_integration" "otel_to_temporal_frontend" {
   count      = local.cos_enabled ? 1 : 0
   model_uuid = var.model_uuid
   application {
-    name     = local.grafana_agent_resolved_name
+    name     = local.otel_collector_resolved_name
     endpoint = "metrics-endpoint"
   }
   application {
@@ -57,11 +57,11 @@ resource "juju_integration" "grafana_to_temporal_frontend" {
   }
 }
 
-resource "juju_integration" "grafana_to_temporal_history" {
+resource "juju_integration" "otel_to_temporal_history" {
   count      = local.cos_enabled ? 1 : 0
   model_uuid = var.model_uuid
   application {
-    name     = local.grafana_agent_resolved_name
+    name     = local.otel_collector_resolved_name
     endpoint = "metrics-endpoint"
   }
   application {
@@ -70,11 +70,11 @@ resource "juju_integration" "grafana_to_temporal_history" {
   }
 }
 
-resource "juju_integration" "grafana_to_temporal_matching" {
+resource "juju_integration" "otel_to_temporal_matching" {
   count      = local.cos_enabled ? 1 : 0
   model_uuid = var.model_uuid
   application {
-    name     = local.grafana_agent_resolved_name
+    name     = local.otel_collector_resolved_name
     endpoint = "metrics-endpoint"
   }
   application {
@@ -83,11 +83,11 @@ resource "juju_integration" "grafana_to_temporal_matching" {
   }
 }
 
-resource "juju_integration" "grafana_to_temporal_worker" {
+resource "juju_integration" "otel_to_temporal_worker" {
   count      = local.cos_enabled ? 1 : 0
   model_uuid = var.model_uuid
   application {
-    name     = local.grafana_agent_resolved_name
+    name     = local.otel_collector_resolved_name
     endpoint = "metrics-endpoint"
   }
   application {
