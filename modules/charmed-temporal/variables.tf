@@ -19,8 +19,8 @@ variable "postgresql" {
   description = "Inputs for postgresql-k8s charm module."
   type = object({
     app_name = optional(string, "postgres")
-    # TODO: Update channel whenever 16/stable is released. Related issue https://github.com/canonical/charmed-temporal-solutions/issues/12
-    channel  = optional(string, "16/edge")
+    # TODO: Update channel to 16/stable when released. Related issue https://github.com/canonical/charmed-temporal-solutions/issues/12
+    channel  = optional(string, "14/stable")
     revision = optional(number, 0)
     units    = optional(number, 1)
     config   = optional(map(string), {})

@@ -32,7 +32,7 @@ The solution module exposes the following configurable inputs:
 
 | Name                           | Type   | Description                                                                                         | Required |
 | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------- | -------- |
-| `model_uuid`                   | string | Reference to an existing Juju model to deploy Temporal into                                         | true     |
+| `model_uuid`                   | string | Reference to an existing Juju model to deploy Temporal into                                       | true     |
 | `postgresql`                   | object | Configuration for the `postgresql-k8s` charm module                                                 | false    |
 | `temporal_server`              | object | Configuration for the `temporal-k8s` charm module                                                   | false    |
 | `temporal_ui`                  | object | Configuration for the `temporal-ui-k8s` charm module                                                | false    |
@@ -45,7 +45,7 @@ Each of the charm input objects (`postgresql`, `temporal_server`, `temporal_ui`,
 | Field                | Type                   | Description                                              | Default                                                       |
 | -------------------- | ---------------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
 | `app_name`           | string                 | Application name to deploy                               | Charm-specific                                                |
-| `channel`            | string                 | Charm channel to deploy from                             | `"1.23/edge"` for Temporal charms, `"16/edge"` for PostgreSQL |
+| `channel`            | string                 | Charm channel to deploy from                             | `"1.23/edge"` for Temporal charms, `"14/stable"` for PostgreSQL |
 | `revision`           | number                 | Charm revision to use. `0` means the latest available.   | `0`                                                           |
 | `units`              | number                 | Number of application units                              | `1`                                                           |
 | `config`             | map(string)            | Charm-specific configuration options                     | `{}`                                                          |
