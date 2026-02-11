@@ -1,10 +1,11 @@
 module "postgresql" {
-  # tflint-ignore: terraform_module_pinned_source 16/edge.
-  # TODO: update ref to stable hash, currently it points to 1
-  source     = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=c5b1378aea463ef9922bd11d1778bb5ca7ed5114"
+  # rev742 is the latest charm revision for postgresql-k8s 16/edge.
+  source     = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=rev742"
   juju_model = var.model_uuid
   app_name   = var.postgresql.app_name
   channel    = var.postgresql.channel
+  # Override base to ubuntu@22.04 as 14/stable only supports 22.04 (rev742 defaults to 24.04).
+  base       = var.postgresql.base
   units      = var.postgresql.units
   config     = var.postgresql.config
 }
