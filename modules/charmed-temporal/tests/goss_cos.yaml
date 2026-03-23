@@ -1,0 +1,10 @@
+# Smoke tests for Charmed Temporal with COS integration
+# Extends the core smoke tests with an additional check for the
+# opentelemetry-collector-k8s application when cos_configuration is enabled.
+# Requires JUJU_MODEL to be set to the target Juju model name.
+gossfile:
+  goss.yaml: {}
+command:
+  otel-collector active:
+    exec: juju status otel-collector -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["otel-collector"]["application-status"]["current"] == "active"'
+    exit-status: 0

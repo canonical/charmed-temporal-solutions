@@ -1,0 +1,22 @@
+# Smoke tests for Charmed Temporal
+# Verifies that all deployed Juju applications reach 'active' status.
+# Requires JUJU_MODEL to be set to the target Juju model name.
+command:
+  temporal-frontend active:
+    exec: juju status temporal-frontend -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-frontend"]["application-status"]["current"] == "active"'
+    exit-status: 0
+  temporal-history active:
+    exec: juju status temporal-history -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-history"]["application-status"]["current"] == "active"'
+    exit-status: 0
+  temporal-matching active:
+    exec: juju status temporal-matching -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-matching"]["application-status"]["current"] == "active"'
+    exit-status: 0
+  temporal-worker active:
+    exec: juju status temporal-worker -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-worker"]["application-status"]["current"] == "active"'
+    exit-status: 0
+  temporal-admin active:
+    exec: juju status temporal-admin -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-admin"]["application-status"]["current"] == "active"'
+    exit-status: 0
+  temporal-ui active:
+    exec: juju status temporal-ui -m {{ .Env.JUJU_MODEL }} --format=json | jq -e '.applications["temporal-ui"]["application-status"]["current"] == "active"'
+    exit-status: 0

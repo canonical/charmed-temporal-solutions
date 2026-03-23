@@ -132,6 +132,32 @@ terraform apply -var cos_configuration=true -var existing_otel_collector_name="o
 
 ---
 
+### Smoke Tests
+
+After a successful deployment, smoke tests verify that all Juju applications have reached `active` status. The tests are defined in `tests/goss.yaml` (and `tests/goss_cos.yaml` for COS deployments) and use [goss](https://github.com/goss-org/goss).
+
+Run the core smoke tests against the `temporal-test` model:
+
+```bash
+just smoke-test
+```
+
+To target a different model:
+
+```bash
+just smoke-test my-model
+```
+
+When `cos_configuration=true` was used during apply, also validate the OpenTelemetry Collector:
+
+```bash
+just smoke-test-cos
+```
+
+Smoke tests are automatically executed as part of `just test`. Goss must be installed (`goss` available on `PATH`).
+
+---
+
 ### Cleanup
 
 To remove the deployment and destroy the associated Juju model:

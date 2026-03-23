@@ -59,7 +59,15 @@ destroy variables_file:
 
     rm "${variables_file}"
 
-# Full test (create model, apply, wait, cleanup)
+# Run goss smoke tests against the deployed model
+smoke-test model="temporal-test":
+    JUJU_MODEL="{{ model }}" goss -g tests/goss.yaml validate
+
+# Run goss smoke tests including the otel-collector (requires cos_configuration=true)
+smoke-test-cos model="temporal-test":
+    JUJU_MODEL="{{ model }}" goss -g tests/goss_cos.yaml validate
+
+# Full test (create model, apply, wait, smoke test, cleanup)
 test:
     #!/usr/bin/bash
     set -euxo pipefail
@@ -73,3 +81,5 @@ test:
     just apply "terraform_test.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true
+
+    just smoke-test
