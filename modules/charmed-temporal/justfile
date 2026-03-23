@@ -67,7 +67,7 @@ smoke-test model="temporal-test":
 smoke-test-cos model="temporal-test":
     JUJU_MODEL="{{ model }}" goss -g tests/goss_cos.yaml validate
 
-# Full test (create model, apply, wait, smoke test, cleanup)
+# Full test (create model, apply, wait for all apps to be active, smoke test, cleanup)
 test:
     #!/usr/bin/bash
     set -euxo pipefail
@@ -80,6 +80,8 @@ test:
 
     just apply "terraform_test.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    for app in temporal-frontend temporal-history temporal-matching temporal-worker temporal-admin temporal-ui; do
+        juju wait-for application "${app}" -m temporal-test --timeout=600s
+    done
 
     just smoke-test
