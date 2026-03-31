@@ -151,7 +151,7 @@ just destroy terraform_test.tfvars
 
 ## Notes
 
-- PostgreSQL integrations are applied in sequence (`depends_on` in `integrations.tf`) so many Temporal units do not open database connections at the same time during `terraform apply`. Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations.
+- Integrations declare `depends_on` for both related charm **modules** (see [issue #18](https://github.com/canonical/charmed-temporal-solutions/issues/18)) and, where useful, prior **`juju_integration`** resources so PostgreSQL relations are not all applied at once (reducing connection spikes during `terraform apply`). Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations and the OTEL `juju_application` (when present).
 - For automated or local tests where connection pressure is tight, set `postgresql.config.profile = "testing"` on the postgresql-k8s charm (the `just test` recipe writes this into generated `terraform_test.tfvars`).
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
