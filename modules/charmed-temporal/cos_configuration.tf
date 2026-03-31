@@ -55,6 +55,7 @@ resource "juju_integration" "otel_to_temporal_frontend" {
     name     = local.app_names.temporal_front
     endpoint = local.provides.temporal_front.metrics_endpoint
   }
+  depends_on = [juju_integration.admin_to_worker]
 }
 
 resource "juju_integration" "otel_to_temporal_history" {
@@ -68,6 +69,7 @@ resource "juju_integration" "otel_to_temporal_history" {
     name     = local.app_names.temporal_hist
     endpoint = local.provides.temporal_hist.metrics_endpoint
   }
+  depends_on = [juju_integration.admin_to_worker]
 }
 
 resource "juju_integration" "otel_to_temporal_matching" {
@@ -81,6 +83,7 @@ resource "juju_integration" "otel_to_temporal_matching" {
     name     = local.app_names.temporal_match
     endpoint = local.provides.temporal_match.metrics_endpoint
   }
+  depends_on = [juju_integration.admin_to_worker]
 }
 
 resource "juju_integration" "otel_to_temporal_worker" {
@@ -94,4 +97,5 @@ resource "juju_integration" "otel_to_temporal_worker" {
     name     = local.app_names.temporal_work
     endpoint = local.provides.temporal_work.metrics_endpoint
   }
+  depends_on = [juju_integration.admin_to_worker]
 }

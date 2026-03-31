@@ -99,16 +99,23 @@ This solution module can be used standalone or as part of a higher-level Terrafo
 ### Example: Basic Deployment
 
 ```bash
-terraform apply -var-file=test/terraform_test.tfvars
+terraform apply -var-file=terraform_test.tfvars
 ```
 
-Sample `terraform_test.tfvars`:
+Sample `terraform_test.tfvars` (use the UUID of an existing Juju model):
 
 ```hcl
-model = "temporal-test"
+model_uuid = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+
+# Optional: extra headroom for PostgreSQL during dense test deploys
+postgresql = {
+  config = {
+    profile = "testing"
+  }
+}
 ```
 
-With this minimal input, all charms will be deployed with their default configuration and automatically related.
+With `model_uuid` set, all charms will be deployed with their default configuration and automatically related. Running `just validate_test_tfvars terraform_test.tfvars` fills in `model_uuid` and adds `profile = "testing"` for PostgreSQL.
 
 ---
 
@@ -137,13 +144,15 @@ terraform apply -var cos_configuration=true -var existing_otel_collector_name="o
 To remove the deployment and destroy the associated Juju model:
 
 ```bash
-just destroy ./test/terraform_test.tfvars
+just destroy terraform_test.tfvars
 ```
 
 ---
 
 ## Notes
 
+- PostgreSQL integrations are applied in sequence (`depends_on` in `integrations.tf`) so many Temporal units do not open database connections at the same time during `terraform apply`. Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations.
+- For automated or local tests where connection pressure is tight, set `postgresql.config.profile = "testing"` on the postgresql-k8s charm (the `just test` recipe writes this into generated `terraform_test.tfvars`).
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
 - The Temporal Worker is pre-provisioned for activity execution.

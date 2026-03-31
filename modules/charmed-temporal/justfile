@@ -29,6 +29,15 @@ validate_test_tfvars variables_file:
         exit 1
     fi
     echo "model_uuid = \"${MODEL_UUID}\"" > "${variables_file}"
+    cat >> "${variables_file}" <<'EOF'
+
+# CI / local test: higher PostgreSQL connection headroom (postgresql-k8s charm).
+postgresql = {
+  config = {
+    profile = "testing"
+  }
+}
+EOF
 
 # Terraform fmt
 fmt: (initialize)
