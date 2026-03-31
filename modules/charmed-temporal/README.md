@@ -32,7 +32,7 @@ The solution module exposes the following configurable inputs:
 
 | Name                           | Type   | Description                                                                                         | Required |
 | ------------------------------ | ------ | --------------------------------------------------------------------------------------------------- | -------- |
-| `model_uuid`                   | string | Reference to an existing Juju model to deploy Temporal into                                       | true     |
+| `model_uuid`                   | string | Reference to an existing Juju model to deploy Temporal into                                         | true     |
 | `postgresql`                   | object | Configuration for the `postgresql-k8s` charm module                                                 | false    |
 | `temporal_server`              | object | Configuration for the `temporal-k8s` charm module                                                   | false    |
 | `temporal_ui`                  | object | Configuration for the `temporal-ui-k8s` charm module                                                | false    |
@@ -42,14 +42,14 @@ The solution module exposes the following configurable inputs:
 
 Each of the charm input objects (`postgresql`, `temporal_server`, `temporal_ui`, `temporal_admin`) supports the following fields:
 
-| Field                | Type                   | Description                                              | Default                                                       |
-| -------------------- | ---------------------- | -------------------------------------------------------- | ------------------------------------------------------------- |
-| `app_name`           | string                 | Application name to deploy                               | Charm-specific                                                |
+| Field                | Type                   | Description                                              | Default                                                         |
+| -------------------- | ---------------------- | -------------------------------------------------------- | --------------------------------------------------------------- |
+| `app_name`           | string                 | Application name to deploy                               | Charm-specific                                                  |
 | `channel`            | string                 | Charm channel to deploy from                             | `"1.23/edge"` for Temporal charms, `"14/stable"` for PostgreSQL |
-| `revision`           | number                 | Charm revision to use. `0` means the latest available.   | `0`                                                           |
-| `units`              | number                 | Number of application units                              | `1`                                                           |
-| `config`             | map(string)            | Charm-specific configuration options                     | `{}`                                                          |
-| `num-history-shards` | string (Temporal only) | Defines number of history shards for the Temporal server | `"1"`                                                         |
+| `revision`           | number                 | Charm revision to use. `0` means the latest available.   | `0`                                                             |
+| `units`              | number                 | Number of application units                              | `1`                                                             |
+| `config`             | map(string)            | Charm-specific configuration options                     | `{}`                                                            |
+| `num-history-shards` | string (Temporal only) | Defines number of history shards for the Temporal server | `"1"`                                                           |
 
 ---
 
@@ -151,7 +151,7 @@ just destroy terraform_test.tfvars
 
 ## Notes
 
-- Integrations declare `depends_on` for both related charm **modules** (see [issue #18](https://github.com/canonical/charmed-temporal-solutions/issues/18)) and, where useful, prior **`juju_integration`** resources so PostgreSQL relations are not all applied at once (reducing connection spikes during `terraform apply`). Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations and the OTEL `juju_application` (when present).
+- Integrations declare `depends_on` for both related charm **modules** and, where useful, prior **`juju_integration`** resources so PostgreSQL relations are not all applied at once (reducing connection spikes during `terraform apply`). Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations and the OTEL `juju_application` (when present).
 - For automated or local tests where connection pressure is tight, set `postgresql.config.profile = "testing"` on the postgresql-k8s charm (the `just test` recipe writes this into generated `terraform_test.tfvars`).
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.

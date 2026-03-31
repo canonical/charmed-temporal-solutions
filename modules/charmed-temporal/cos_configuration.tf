@@ -55,7 +55,6 @@ resource "juju_integration" "otel_to_temporal_frontend" {
     name     = local.app_names.temporal_front
     endpoint = local.provides.temporal_front.metrics_endpoint
   }
-  # Static list required by juju provider; whole resource address works for count (0 or 1 instances).
   depends_on = [
     juju_integration.admin_to_worker,
     module.temporal_frontend,

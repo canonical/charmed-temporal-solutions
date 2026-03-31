@@ -29,7 +29,6 @@ validate_test_tfvars variables_file:
         exit 1
     fi
     echo "model_uuid = \"${MODEL_UUID}\"" > "${variables_file}"
-    # Use echo, not a heredoc: `just` parses recipe lines and rejects `postgresql = {` inside heredocs.
     {
       echo ""
       echo "# CI / local test: higher PostgreSQL connection headroom (postgresql-k8s charm)."
