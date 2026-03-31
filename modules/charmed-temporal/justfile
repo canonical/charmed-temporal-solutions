@@ -29,15 +29,16 @@ validate_test_tfvars variables_file:
         exit 1
     fi
     echo "model_uuid = \"${MODEL_UUID}\"" > "${variables_file}"
-    cat >> "${variables_file}" <<'EOF'
-
-# CI / local test: higher PostgreSQL connection headroom (postgresql-k8s charm).
-postgresql = {
-  config = {
-    profile = "testing"
-  }
-}
-EOF
+    # Use echo, not a heredoc: `just` parses recipe lines and rejects `postgresql = {` inside heredocs.
+    {
+      echo ""
+      echo "# CI / local test: higher PostgreSQL connection headroom (postgresql-k8s charm)."
+      echo "postgresql = {"
+      echo "  config = {"
+      echo "    profile = \"testing\""
+      echo "  }"
+      echo "}"
+    } >> "${variables_file}"
 
 # Terraform fmt
 fmt: (initialize)
