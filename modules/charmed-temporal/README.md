@@ -102,20 +102,15 @@ This solution module can be used standalone or as part of a higher-level Terrafo
 terraform apply -var-file=terraform_test.tfvars
 ```
 
-Sample `terraform_test.tfvars` (use the UUID of an existing Juju model):
+Committed template: [`test/terraform_test.tfvars`](test/terraform_test.tfvars) sets `postgresql.config.profile = "testing"` for CI/local tests. Running `just validate_test_tfvars terraform_test.tfvars` copies that file to the target path and appends `model_uuid` from the `temporal-test` Juju model.
+
+For a manual apply, use the UUID of an existing Juju model:
 
 ```hcl
 model_uuid = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-
-# Optional: extra headroom for PostgreSQL during dense test deploys
-postgresql = {
-  config = {
-    profile = "testing"
-  }
-}
 ```
 
-With `model_uuid` set, all charms will be deployed with their default configuration and automatically related. Running `just validate_test_tfvars terraform_test.tfvars` fills in `model_uuid` and adds `profile = "testing"` for PostgreSQL.
+You can start from `test/terraform_test.tfvars` and add `model_uuid`, or pass vars on the CLI.
 
 ---
 
@@ -151,8 +146,8 @@ just destroy terraform_test.tfvars
 
 ## Notes
 
-- Integrations declare `depends_on` for both related charm **modules** and, where useful, prior **`juju_integration`** resources so PostgreSQL relations are not all applied at once (reducing connection spikes during `terraform apply`). Admin integrations are chained after PostgreSQL wiring; optional COS metrics integrations wait on the core admin relations and the OTEL `juju_application` (when present).
-- For automated or local tests where connection pressure is tight, set `postgresql.config.profile = "testing"` on the postgresql-k8s charm (the `just test` recipe writes this into generated `terraform_test.tfvars`).
+- Each `juju_integration` uses `depends_on` on the **two charm modules** it relates ([#18](https://github.com/canonical/charmed-temporal-solutions/issues/18)). Optional COS metrics integrations depend on the relevant Temporal **module** and the OTEL `juju_application` (when deployed by this module).
+- Test/CI PostgreSQL headroom comes from [`test/terraform_test.tfvars`](test/terraform_test.tfvars) (`profile = "testing"`), merged with `model_uuid` by `just validate_test_tfvars`.
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
 - The Temporal Worker is pre-provisioned for activity execution.

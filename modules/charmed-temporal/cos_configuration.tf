@@ -56,7 +56,6 @@ resource "juju_integration" "otel_to_temporal_frontend" {
     endpoint = local.provides.temporal_front.metrics_endpoint
   }
   depends_on = [
-    juju_integration.admin_to_worker,
     module.temporal_frontend,
     juju_application.otel_collector_k8s,
   ]
@@ -74,7 +73,6 @@ resource "juju_integration" "otel_to_temporal_history" {
     endpoint = local.provides.temporal_hist.metrics_endpoint
   }
   depends_on = [
-    juju_integration.admin_to_worker,
     module.temporal_history,
     juju_application.otel_collector_k8s,
   ]
@@ -92,7 +90,6 @@ resource "juju_integration" "otel_to_temporal_matching" {
     endpoint = local.provides.temporal_match.metrics_endpoint
   }
   depends_on = [
-    juju_integration.admin_to_worker,
     module.temporal_matching,
     juju_application.otel_collector_k8s,
   ]
@@ -110,7 +107,6 @@ resource "juju_integration" "otel_to_temporal_worker" {
     endpoint = local.provides.temporal_work.metrics_endpoint
   }
   depends_on = [
-    juju_integration.admin_to_worker,
     module.temporal_worker,
     juju_application.otel_collector_k8s,
   ]

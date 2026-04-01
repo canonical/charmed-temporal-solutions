@@ -28,16 +28,8 @@ validate_test_tfvars variables_file:
     if ! juju show-model "${MODEL_UUID}" >/dev/null 2>&1; then
         exit 1
     fi
-    echo "model_uuid = \"${MODEL_UUID}\"" > "${variables_file}"
-    {
-      echo ""
-      echo "# CI / local test: higher PostgreSQL connection headroom (postgresql-k8s charm)."
-      echo "postgresql = {"
-      echo "  config = {"
-      echo "    profile = \"testing\""
-      echo "  }"
-      echo "}"
-    } >> "${variables_file}"
+    cp test/terraform_test.tfvars "${variables_file}"
+    printf '\nmodel_uuid = "%s"\n' "${MODEL_UUID}" >> "${variables_file}"
 
 # Terraform fmt
 fmt: (initialize)

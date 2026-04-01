@@ -3,4 +3,5 @@
 *.tfstate
 *.tfstate.*
 *.tfvars
+!modules/charmed-temporal/test/terraform_test.tfvars
 .terraform.lock.hcl
