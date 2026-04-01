@@ -146,7 +146,7 @@ just destroy terraform_test.tfvars
 
 ## Notes
 
-- Each `juju_integration` uses `depends_on` on the **two charm modules** it relates ([#18](https://github.com/canonical/charmed-temporal-solutions/issues/18)). Optional COS metrics integrations depend on the relevant Temporal **module** and the OTEL `juju_application` (when deployed by this module).
+- Each `juju_integration` uses `depends_on` on the **two charm modules** it relates ([#18](https://github.com/canonical/charmed-temporal-solutions/issues/18)). Integrations are **not** chained to each other; **`just destroy`** runs **`terraform destroy -parallelism=1`** so CI/local teardown does not remove many integrations at once (avoids Juju/provider delete timeouts). Optional COS metrics integrations depend on the relevant Temporal **module** and the OTEL `juju_application` (when deployed by this module).
 - Test/CI PostgreSQL headroom comes from [`test/terraform_test.tfvars`](test/terraform_test.tfvars) (`profile = "testing"`), merged with `model_uuid` by `just validate_test_tfvars`.
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.

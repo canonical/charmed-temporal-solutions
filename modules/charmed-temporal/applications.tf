@@ -5,9 +5,9 @@ module "postgresql" {
   app_name   = var.postgresql.app_name
   channel    = var.postgresql.channel
   # Override base to ubuntu@22.04 as 14/stable only supports 22.04 (rev742 defaults to 24.04).
-  base       = var.postgresql.base
-  units      = var.postgresql.units
-  config     = var.postgresql.config
+  base   = var.postgresql.base
+  units  = var.postgresql.units
+  config = var.postgresql.config
 }
 
 module "temporal_frontend" {

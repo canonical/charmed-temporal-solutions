@@ -1,4 +1,5 @@
-# Each integration explicitly depends_on the two charm modules it connects (#18).
+# Explicit depends_on on both charm modules per integration (#18). No juju_integration chaining;
+# parallel destroy is handled in CI via `just destroy` → terraform destroy -parallelism=1.
 
 # Temporal Frontend ↔ PostgreSQL
 resource "juju_integration" "frontend_to_postgresql" {
