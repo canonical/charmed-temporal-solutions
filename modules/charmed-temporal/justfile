@@ -59,6 +59,30 @@ destroy variables_file:
 
     rm "${variables_file}"
 
+# Apply with a base variables file and an overlay variables file
+apply-with-overlay base_file overlay_file: (initialize)
+    terraform apply -auto-approve -var-file="${base_file}" -var-file="${overlay_file}"
+
+# Destroy with a base and an overlay variables file
+destroy-with-overlay base_file overlay_file:
+    #!/usr/bin/bash
+    set -euxo pipefail
+    terraform destroy -auto-approve -var-file="${base_file}" -var-file="${overlay_file}" || true
+    echo "Forcing model cleanup..."
+    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    rm -f "${base_file}"
+
+# Port-forward otel-collector and run goss COS tests
+[private]
+goss-cos:
+    #!/usr/bin/bash
+    set -euxo pipefail
+    kubectl port-forward -n temporal-test pod/otel-collector-0 13133:13133 8888:8888 &
+    PF_PID=$!
+    trap 'kill ${PF_PID} 2>/dev/null || true' EXIT
+    sleep 5
+    GOSS_FILE=test/goss-cos.yaml goss validate
+
 # Full test (create model, apply, wait, cleanup)
 test:
     #!/usr/bin/bash
@@ -73,3 +97,40 @@ test:
     just apply "terraform_test.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true
+
+# Full test for COS with module-deployed opentelemetry-collector-k8s
+test-cos:
+    #!/usr/bin/bash
+    set -euxo pipefail
+
+    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"' EXIT
+
+    just add-model
+
+    just validate_test_tfvars "terraform_test.tfvars"
+
+    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"
+
+    juju wait-for model temporal-test --timeout=600s || true
+
+    just goss-cos
+
+# Full test for COS with a pre-deployed opentelemetry-collector-k8s
+test-cos-existing:
+    #!/usr/bin/bash
+    set -euxo pipefail
+
+    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"' EXIT
+
+    just add-model
+
+    just validate_test_tfvars "terraform_test.tfvars"
+
+    juju deploy opentelemetry-collector-k8s otel-collector --channel=2/stable --trust -m temporal-test
+    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
+
+    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
+
+    juju wait-for model temporal-test --timeout=600s || true
+
+    just goss-cos
