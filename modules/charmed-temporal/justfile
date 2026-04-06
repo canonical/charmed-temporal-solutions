@@ -80,8 +80,7 @@ goss-cos:
     kubectl port-forward -n temporal-test pod/otel-collector-0 13133:13133 8888:8888 &
     PF_PID=$!
     trap 'kill ${PF_PID} 2>/dev/null || true' EXIT
-    sleep 5
-    GOSS_FILE=test/goss-cos.yaml goss validate
+    GOSS_FILE=test/goss-cos.yaml goss validate --retry-timeout 30s
 
 # Full test (create model, apply, wait, cleanup)
 test:
@@ -112,6 +111,8 @@ test-cos:
     just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true
+
+    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
 
     just goss-cos
 
