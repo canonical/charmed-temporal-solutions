@@ -2,6 +2,7 @@
 # Higher PostgreSQL connection headroom (postgresql-k8s charm).
 postgresql = {
   config = {
-    profile = "testing"
+    profile                      = "testing"
+    experimental_max_connections = "400"
   }
 }

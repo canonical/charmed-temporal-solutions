@@ -28,7 +28,6 @@ validate_test_tfvars variables_file:
     if ! juju show-model "${MODEL_UUID}" >/dev/null 2>&1; then
         exit 1
     fi
-    cp test/terraform_test.tfvars "${variables_file}"
     printf '\nmodel_uuid = "%s"\n' "${MODEL_UUID}" >> "${variables_file}"
 
 # Terraform fmt
@@ -54,24 +53,42 @@ destroy variables_file:
     if [ ! -f "${variables_file}" ]; then
         exit 1
     fi
-    # Serial destroy avoids parallel juju_integration teardown timeouts in CI (provider max duration).
-    terraform destroy -auto-approve -parallelism=1 -var-file="${variables_file}" || true
+    terraform destroy -auto-approve -var-file="${variables_file}" || true
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
 
-    rm "${variables_file}"
+    sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}"
 
-# Full test (create model, apply, wait, cleanup)
+# Wait for all applications in temporal-test to reach active status
+wait-for-active:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    timeout=1200
+    elapsed=0
+    interval=10
+    while [ $elapsed -lt $timeout ]; do
+        if juju wait-for model temporal-test \
+            --query='forEach(applications, app => app.status == "active")' \
+            --timeout=${interval}s 2>/dev/null; then
+            exit 0
+        fi
+        elapsed=$((elapsed + interval))
+    done
+    echo "Timed out waiting for all applications to become active"
+    exit 1
+
+# Full test (create model, apply, wait for all apps active, cleanup)
 test:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy "terraform_test.tfvars"' EXIT
+    trap 'just destroy "./test/terraform_test.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    just validate_test_tfvars "./test/terraform_test.tfvars"
 
-    just apply "terraform_test.tfvars"
+    just apply "./test/terraform_test.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    just wait-for-active
