@@ -95,3 +95,7 @@ test:
     just apply "./test/terraform_test.tfvars"
 
     just wait-for-active
+
+    juju status
+
+    juju debug-log
