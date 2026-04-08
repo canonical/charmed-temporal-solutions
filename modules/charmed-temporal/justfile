@@ -98,4 +98,4 @@ test:
 
     juju status
 
-    juju debug-log
+    juju debug-log --replay
