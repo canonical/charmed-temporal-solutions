@@ -99,18 +99,20 @@ This solution module can be used standalone or as part of a higher-level Terrafo
 ### Example: Basic Deployment
 
 ```bash
-terraform apply -var-file=terraform_test.tfvars
+terraform apply -var-file=./test/terraform_test.tfvars
 ```
 
-Committed template: [`test/terraform_test.tfvars`](test/terraform_test.tfvars) sets `postgresql.config.profile = "testing"` for CI/local tests. Running `just validate_test_tfvars terraform_test.tfvars` copies that file to the target path and appends `model_uuid` from the `temporal-test` Juju model.
+The committed template [`test/terraform_test.tfvars`](test/terraform_test.tfvars) sets PostgreSQL `profile = "testing"` and `experimental_max_connections = "400"` for extra headroom in CI/local runs. It does **not** commit secrets; `model_uuid` is injected at runtime.
 
-For a manual apply, use the UUID of an existing Juju model:
+**`just validate_test_tfvars`** (used by `just test`) appends `model_uuid` for the `temporal-test` model to the path you pass—it does **not** copy the file. Avoid running it repeatedly without removing duplicate `model_uuid` lines, or use `just destroy` which strips them via `sed`.
+
+For a manual apply, set the UUID of an existing Juju model in tfvars or on the CLI:
 
 ```hcl
 model_uuid = "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
 ```
 
-You can start from `test/terraform_test.tfvars` and add `model_uuid`, or pass vars on the CLI.
+If you recreate the Juju model (new UUID) but keep an old `terraform.tfstate`, Terraform may report **unknown model** on refresh. Remove local state in this directory (`terraform.tfstate` and `terraform.tfstate.backup`) and apply again. **`just test`** does this automatically after `add-model`; manual or scripted applies still need a clean state when the model UUID changes.
 
 ---
 
@@ -136,18 +138,24 @@ terraform apply -var cos_configuration=true -var existing_otel_collector_name="o
 
 ### Cleanup
 
-To remove the deployment and destroy the associated Juju model:
+To run Terraform destroy, remove the `temporal-test` model, and strip the appended `model_uuid` line from the tfvars file:
 
 ```bash
-just destroy terraform_test.tfvars
+just destroy "./test/terraform_test.tfvars"
 ```
+
+Paths are relative to `modules/charmed-temporal`.
+
+### Local / CI test flow
+
+`just test` runs `add-model`, removes local `terraform.tfstate` (so the new model UUID never clashes with a previous run), `validate_test_tfvars`, `apply`, then **`just wait-for-active`** (polls until every application in `temporal-test` is `active`, up to 20 minutes). It registers `just destroy` on exit so the model and tfvars line are cleaned up.
 
 ---
 
 ## Notes
 
-- Each `juju_integration` uses `depends_on` on the **two charm modules** it relates ([#18](https://github.com/canonical/charmed-temporal-solutions/issues/18)). Integrations are **not** chained to each other; **`just destroy`** runs **`terraform destroy -parallelism=1`** so CI/local teardown does not remove many integrations at once (avoids Juju/provider delete timeouts). Optional COS metrics integrations depend on the relevant Temporal **module** and the OTEL `juju_application` (when deployed by this module).
-- Test/CI PostgreSQL headroom comes from [`test/terraform_test.tfvars`](test/terraform_test.tfvars) (`profile = "testing"`), merged with `model_uuid` by `just validate_test_tfvars`.
+- Each `juju_integration` uses `depends_on` on the **two charm modules** it relates ([#18](https://github.com/canonical/charmed-temporal-solutions/issues/18)). Optional COS metrics integrations depend on the relevant Temporal **module** and the OpenTelemetry collector application when this module deploys it (`cos_configuration=true` without `existing_otel_collector_name`).
+- Test/CI PostgreSQL settings are in [`test/terraform_test.tfvars`](test/terraform_test.tfvars); `just validate_test_tfvars` appends `model_uuid` for `temporal-test`.
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
 - The Temporal Worker is pre-provisioned for activity execution.

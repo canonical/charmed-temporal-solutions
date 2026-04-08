@@ -20,6 +20,7 @@ add-model: (destroy-model)
     juju add-model temporal-test
 
 [private]
+# Appends model_uuid to variables_file (does not copy). Requires Juju model temporal-test.
 validate_test_tfvars variables_file:
     #!/usr/bin/bash
 
@@ -86,6 +87,9 @@ test:
     trap 'just destroy "./test/terraform_test.tfvars"' EXIT
 
     just add-model
+
+    # Fresh model UUID each run; stale terraform.tfstate still references the old model → refresh fails.
+    rm -f terraform.tfstate terraform.tfstate.backup
 
     just validate_test_tfvars "./test/terraform_test.tfvars"
 
