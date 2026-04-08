@@ -98,14 +98,18 @@ This solution module can be used standalone or as part of a higher-level Terrafo
 
 ### Example: Basic Deployment
 
+Use the provided `just` recipe to create the model, generate the required `terraform_test.tfvars` (containing `model_uuid`), apply, and clean up automatically:
+
 ```bash
-terraform apply -var-file=test/terraform_test.tfvars
+just test
 ```
 
-Sample `terraform_test.tfvars`:
+To apply manually, first obtain the model UUID and write it to the variables file:
 
-```hcl
-model = "temporal-test"
+```bash
+MODEL_UUID=$(juju show-model temporal-test --format=json | jq -r '."temporal-test"["model-uuid"]')
+echo "model_uuid = \"${MODEL_UUID}\"" > terraform_test.tfvars
+terraform apply -var-file=terraform_test.tfvars
 ```
 
 With this minimal input, all charms will be deployed with their default configuration and automatically related.
@@ -137,7 +141,7 @@ terraform apply -var cos_configuration=true -var existing_otel_collector_name="o
 To remove the deployment and destroy the associated Juju model:
 
 ```bash
-just destroy ./test/terraform_test.tfvars
+just destroy terraform_test.tfvars
 ```
 
 ---

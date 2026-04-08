@@ -1,0 +1,14 @@
+# Goss tests for the opentelemetry-collector-k8s deployment.
+# Run via port-forward: the justfile's goss-cos recipe forwards
+# ports 13133 and 8888 from pod/otel-collector-0 to localhost
+# before executing these checks.
+http:
+  http://localhost:13133/:
+    status: 200
+    timeout: 5000
+    body: []
+  http://localhost:8888/metrics:
+    status: 200
+    timeout: 5000
+    body:
+      - "otelcol"
