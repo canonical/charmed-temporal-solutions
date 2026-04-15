@@ -101,15 +101,21 @@ This solution module can be used standalone or as part of a higher-level Terrafo
 
 ### Example: Basic Deployment
 
-From the module directory (`modules/charmed-temporal`), with a Juju model already created:
+Use the provided `just` recipe to create the model, apply, wait for all apps to become active, and clean up automatically:
 
 ```bash
+just test
+```
+
+To apply manually from `modules/charmed-temporal`, first obtain the model UUID and append it to the variables file:
+
+```bash
+MODEL_UUID=$(juju show-model temporal-test --format=json | jq -r '."temporal-test"["model-uuid"]')
+printf '\nmodel_uuid = "%s"\n' "${MODEL_UUID}" >> ./test/terraform_test.tfvars
 terraform apply -var-file=./test/terraform_test.tfvars
 ```
 
 The committed template [`test/terraform_test.tfvars`](test/terraform_test.tfvars) sets PostgreSQL `profile = "testing"` for lighter resource usage in CI/local runs. It does **not** commit secrets; `model_uuid` is injected at runtime.
-
-**`just validate_test_tfvars`** (used by `just test`) appends `model_uuid` for the `temporal-test` model to the path you pass—it does **not** copy the file. Avoid running it repeatedly without removing duplicate `model_uuid` lines, or use `just destroy` which strips them via `sed`.
 
 For a manual apply, set the UUID of an existing Juju model in tfvars or on the CLI:
 
