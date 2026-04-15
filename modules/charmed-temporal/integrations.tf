@@ -1,116 +1,130 @@
-# Each integration depends_on the two charm modules it relates (#18). Integrations are not
-# chained to each other. 
+# Each integration depends_on the two charm modules/resources it relates.
+# Temporal services connect to PostgreSQL through PgBouncer (session pooling mode by default),
 
-# Temporal Frontend ↔ PostgreSQL
-resource "juju_integration" "frontend_to_postgresql" {
+# PgBouncer ↔ PostgreSQL (backend)
+resource "juju_integration" "pgbouncer_to_postgresql" {
+  model_uuid = var.model_uuid
+  application {
+    name     = var.postgresql.app_name
+    endpoint = module.postgresql.provides.database
+  }
+  application {
+    name     = juju_application.pgbouncer.name
+    endpoint = "backend-database"
+  }
+  depends_on = [module.postgresql, juju_application.pgbouncer]
+}
+
+# Temporal Frontend ↔ PgBouncer
+resource "juju_integration" "frontend_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-frontend"
     endpoint = module.temporal_frontend.requires.db
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_frontend, module.postgresql]
+  depends_on = [module.temporal_frontend, juju_application.pgbouncer]
 }
 
-# Temporal Frontend ↔ PostgreSQL (visibility)
-resource "juju_integration" "frontend_visibility_to_postgresql" {
+# Temporal Frontend ↔ PgBouncer (visibility)
+resource "juju_integration" "frontend_visibility_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-frontend"
     endpoint = module.temporal_frontend.requires.visibility
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_frontend, module.postgresql]
+  depends_on = [module.temporal_frontend, juju_application.pgbouncer]
 }
 
-# Temporal History ↔ PostgreSQL
-resource "juju_integration" "history_to_postgresql" {
+# Temporal History ↔ PgBouncer
+resource "juju_integration" "history_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-history"
     endpoint = module.temporal_history.requires.db
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_history, module.postgresql]
+  depends_on = [module.temporal_history, juju_application.pgbouncer]
 }
 
-# Temporal Matching ↔ PostgreSQL
-resource "juju_integration" "matching_to_postgresql" {
-  model_uuid = var.model_uuid
-  application {
-    name     = "temporal-matching"
-    endpoint = module.temporal_matching.requires.db
-  }
-  application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
-  }
-  depends_on = [module.temporal_matching, module.postgresql]
-}
-
-# Temporal History ↔ PostgreSQL (visibility)
-resource "juju_integration" "history_visibility_to_postgresql" {
+# Temporal History ↔ PgBouncer (visibility)
+resource "juju_integration" "history_visibility_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-history"
     endpoint = module.temporal_history.requires.visibility
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_history, module.postgresql]
+  depends_on = [module.temporal_history, juju_application.pgbouncer]
 }
 
-# Temporal Matching ↔ PostgreSQL (visibility)
-resource "juju_integration" "matching_visibility_to_postgresql" {
+# Temporal Matching ↔ PgBouncer
+resource "juju_integration" "matching_to_pgbouncer" {
+  model_uuid = var.model_uuid
+  application {
+    name     = "temporal-matching"
+    endpoint = module.temporal_matching.requires.db
+  }
+  application {
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
+  }
+  depends_on = [module.temporal_matching, juju_application.pgbouncer]
+}
+
+# Temporal Matching ↔ PgBouncer (visibility)
+resource "juju_integration" "matching_visibility_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-matching"
     endpoint = module.temporal_matching.requires.visibility
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_matching, module.postgresql]
+  depends_on = [module.temporal_matching, juju_application.pgbouncer]
 }
 
-# Temporal Worker ↔ PostgreSQL
-resource "juju_integration" "worker_to_postgresql" {
+# Temporal Worker ↔ PgBouncer
+resource "juju_integration" "worker_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-worker"
     endpoint = module.temporal_worker.requires.db
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_worker, module.postgresql]
+  depends_on = [module.temporal_worker, juju_application.pgbouncer]
 }
 
-# Temporal Worker ↔ PostgreSQL (visibility)
-resource "juju_integration" "worker_visibility_to_postgresql" {
+# Temporal Worker ↔ PgBouncer (visibility)
+resource "juju_integration" "worker_visibility_to_pgbouncer" {
   model_uuid = var.model_uuid
   application {
     name     = "temporal-worker"
     endpoint = module.temporal_worker.requires.visibility
   }
   application {
-    name     = var.postgresql.app_name
-    endpoint = module.postgresql.provides.database
+    name     = juju_application.pgbouncer.name
+    endpoint = "database"
   }
-  depends_on = [module.temporal_worker, module.postgresql]
+  depends_on = [module.temporal_worker, juju_application.pgbouncer]
 }
 
 # Temporal Frontend ↔ UI

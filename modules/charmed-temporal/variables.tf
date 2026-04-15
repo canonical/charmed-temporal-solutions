@@ -53,6 +53,18 @@ variable "temporal_admin" {
   default = {}
 }
 
+variable "pgbouncer" {
+  description = "Inputs for pgbouncer-k8s charm."
+  type = object({
+    app_name = optional(string, "pgbouncer")
+    channel  = optional(string, "1/stable")
+    revision = optional(number, null)
+    units    = optional(number, 1)
+    config   = optional(map(string), {})
+  })
+  default = {}
+}
+
 variable "cos_configuration" {
   description = "Boolean value that enables COS integration."
   type        = bool

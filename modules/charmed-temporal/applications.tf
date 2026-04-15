@@ -10,6 +10,19 @@ module "postgresql" {
   config = var.postgresql.config
 }
 
+resource "juju_application" "pgbouncer" {
+  name       = var.pgbouncer.app_name
+  model_uuid = var.model_uuid
+  trust      = true
+  units      = var.pgbouncer.units
+  config     = var.pgbouncer.config
+  charm {
+    name     = "pgbouncer-k8s"
+    channel  = var.pgbouncer.channel
+    revision = var.pgbouncer.revision
+  }
+}
+
 module "temporal_frontend" {
   source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
   model_uuid = var.model_uuid
