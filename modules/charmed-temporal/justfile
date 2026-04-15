@@ -53,7 +53,7 @@ destroy variables_file:
     if [ ! -f "${variables_file}" ]; then
         exit 1
     fi
-    terraform destroy -auto-approve -var-file="${variables_file}" || true
+    terraform destroy -auto-approve -parallelism=1 -var-file="${variables_file}" || true
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
 
@@ -86,7 +86,7 @@ apply-with-overlay base_file overlay_file: (initialize)
 destroy-with-overlay base_file overlay_file:
     #!/usr/bin/bash
     set -euxo pipefail
-    terraform destroy -auto-approve -var-file="${base_file}" -var-file="${overlay_file}" || true
+    terraform destroy -auto-approve -parallelism=1 -var-file="${base_file}" -var-file="${overlay_file}" || true
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
     rm -f "${base_file}"
