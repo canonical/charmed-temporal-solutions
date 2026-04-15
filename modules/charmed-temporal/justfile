@@ -119,6 +119,10 @@ test:
 
     just wait-for-active
 
+    juju status
+
+    juju debug-log --replay
+
 # Full test for COS with module-deployed opentelemetry-collector-k8s
 test-cos:
     #!/usr/bin/bash
