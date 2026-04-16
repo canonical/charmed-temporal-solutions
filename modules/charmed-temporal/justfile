@@ -57,7 +57,7 @@ destroy variables_file:
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
 
-    sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}"
+    sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}" || true
 
 # Wait for all applications in temporal-test to reach active status
 wait-for-active:
@@ -119,7 +119,7 @@ test:
 
     just wait-for-active
 
-    juju status
+    juju status || true
 
 # Full test for COS with module-deployed opentelemetry-collector-k8s
 test-cos:
