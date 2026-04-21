@@ -141,6 +141,20 @@ resource "juju_integration" "frontend_to_ui" {
   depends_on = [module.temporal_frontend, module.temporal_ui]
 }
 
+# Temporal Frontent ↔ UI (temporal-host-info)
+resource "juju_integration" "frontend_to_ui_host_info"{
+  model_uuid = var.model_uuid
+  application {
+    name     = "temporal-frontend"
+    endpoint = "temporal-host-info"
+  }
+  application {
+    name     = var.temporal_ui.app_name
+    endpoint = "temporal-host-info"
+  }
+  depends_on = [module.temporal_frontend, module.temporal_ui]
+}
+
 # Temporal Frontend ↔ Admin
 resource "juju_integration" "frontend_to_admin" {
   model_uuid = var.model_uuid
@@ -151,6 +165,20 @@ resource "juju_integration" "frontend_to_admin" {
   application {
     name     = var.temporal_admin.app_name
     endpoint = module.temporal_admin.provides.admin
+  }
+  depends_on = [module.temporal_frontend, module.temporal_admin]
+}
+
+# Temporal Frontend ↔ Admin (temporal-host-info)
+resource "juju_integration" "frontend_to_admin_host_info" {
+  model_uuid = var.model_uuid
+  application {
+    name     = "temporal-frontend"
+    endpoint = "temporal-host-info"
+  }
+  application {
+    name     = var.temporal_admin.app_name
+    endpoint = "temporal-host-info"
   }
   depends_on = [module.temporal_frontend, module.temporal_admin]
 }

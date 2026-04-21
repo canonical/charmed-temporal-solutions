@@ -91,6 +91,8 @@ The following relations are automatically established:
 | `temporal-admin ↔ temporal-matching`         | Schema management for matching.             |
 | `temporal-admin ↔ temporal-worker`           | Schema management for worker.               |
 | `temporal-frontend ↔ temporal-ui`            | UI access integration.                      |
+| `temporal-frontend ↔ temporal-ui` (temporal-host-info) | Frontend gRPC host and port for temporal-ui-k8s|
+| `temporal-frontend ↔ temporal-admin` (temporal-host-info) | Frontend gRPC host and port for temporal-admin-k8s|
 | _(Optional)_ `otel-collector ↔ temporal-*`   | Metrics integration when COS is enabled.    |
 
 ---
