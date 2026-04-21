@@ -13,7 +13,7 @@ initialize:
 
 # Destroy model if exists
 destroy-model:
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
 
 # Add a fresh model
 add-model: (destroy-model)
@@ -54,9 +54,9 @@ destroy variables_file:
     if [ ! -f "${variables_file}" ]; then
         exit 1
     fi
-    terraform destroy -auto-approve -var-file="${variables_file}" || true
+    terraform destroy -auto-approve -parallelism=1 -var-file="${variables_file}" || true
     echo "Forcing model cleanup..."
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
 
     sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}" || true
 
@@ -89,7 +89,7 @@ destroy-with-overlay base_file overlay_file:
     set -euxo pipefail
     terraform destroy -auto-approve -var-file="${base_file}" -var-file="${overlay_file}" || true
     echo "Forcing model cleanup..."
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
     sed -i '/^model_uuid[[:space:]]*=/d' "${base_file}" || true
 
 # Port-forward otel-collector and run goss COS tests
