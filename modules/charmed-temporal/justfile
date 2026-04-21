@@ -90,7 +90,7 @@ destroy-with-overlay base_file overlay_file:
     terraform destroy -auto-approve -var-file="${base_file}" -var-file="${overlay_file}" || true
     echo "Forcing model cleanup..."
     juju destroy-model --no-prompt --destroy-storage temporal-test || true
-    rm -f "${base_file}"
+    sed -i '/^model_uuid[[:space:]]*=/d' "${base_file}" || true
 
 # Port-forward otel-collector and run goss COS tests
 [private]
@@ -127,13 +127,15 @@ test-cos:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"' EXIT
+    trap 'just destroy-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    rm -f terraform.tfstate terraform.tfstate.backup
 
-    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"
+    just validate_test_tfvars "./test/terraform_test.tfvars"
+
+    just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true
 
@@ -146,16 +148,18 @@ test-cos-existing:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"' EXIT
+    trap 'just destroy-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    rm -f terraform.tfstate terraform.tfstate.backup
+
+    just validate_test_tfvars "./test/terraform_test.tfvars"
 
     juju deploy opentelemetry-collector-k8s otel-collector --channel=2/stable --trust -m temporal-test
     juju wait-for application otel-collector --model temporal-test --timeout=300s || true
 
-    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
+    just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
 
     juju wait-for model temporal-test --timeout=600s || true
 
