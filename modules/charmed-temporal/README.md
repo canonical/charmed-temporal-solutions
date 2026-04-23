@@ -44,14 +44,14 @@ The solution module exposes the following configurable inputs:
 
 Each of the charm input objects (`postgresql`, `pgbouncer`, `temporal_server`, `temporal_ui`, `temporal_admin`) supports the following fields:
 
-| Field                | Type                   | Description                                              | Default                                                                                     |
-| -------------------- | ---------------------- | -------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `app_name`           | string                 | Application name to deploy                               | Charm-specific                                                                              |
-| `channel`            | string                 | Charm channel to deploy from                             | `"1.23/edge"` for Temporal charms, `"14/stable"` for PostgreSQL, `"1/stable"` for PgBouncer |
-| `revision`           | number                 | Charm revision to pin. `null` means latest for channel.  | `null`                                                                                      |
-| `units`              | number                 | Number of application units                              | `1`                                                                                         |
-| `config`             | map(string)            | Charm-specific configuration options                     | `{}`                                                                                        |
-| `num-history-shards` | string (Temporal only) | Defines number of history shards for the Temporal server | `"1"`                                                                                       |
+| Field                | Type                   | Description                                                | Default                                                                                              |
+| -------------------- | ---------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `app_name`           | string                 | Application name to deploy                                 | Charm-specific                                                                                       |
+| `channel`            | string                 | Charm channel to deploy from                               | `"1.23/edge"` for Temporal charms, `"14/stable"` for PostgreSQL, `"1/stable"` for PgBouncer          |
+| `revision`           | number                 | Charm revision to pin. `null` unpins (latest for channel). | `0` for `postgresql`, `temporal_server`, `temporal_ui`, and `temporal_admin`; `null` for `pgbouncer` |
+| `units`              | number                 | Number of application units                                | `1`                                                                                                  |
+| `config`             | map(string)            | Charm-specific configuration options                       | `{}`                                                                                                 |
+| `num-history-shards` | string (Temporal only) | Defines number of history shards for the Temporal server   | `"1"`                                                                                                |
 
 ---
 
@@ -75,25 +75,25 @@ Upon apply, this module exports the following outputs:
 
 The following relations are automatically established:
 
-| Integration                                  | Purpose                                     |
-| -------------------------------------------- | ------------------------------------------- |
-| `pgbouncer ↔ postgresql`                     | PgBouncer backend connection to PostgreSQL. |
-| `temporal-frontend ↔ pgbouncer`              | Main database connection (via pool).        |
-| `temporal-frontend ↔ pgbouncer (visibility)` | Visibility database connection (via pool).  |
-| `temporal-history ↔ pgbouncer`               | History persistence (via pool).             |
-| `temporal-history ↔ pgbouncer (visibility)`  | History visibility store (via pool).        |
-| `temporal-matching ↔ pgbouncer`              | Matching persistence (via pool).            |
-| `temporal-matching ↔ pgbouncer (visibility)` | Matching visibility store (via pool).       |
-| `temporal-worker ↔ pgbouncer`                | Worker persistence (via pool).              |
-| `temporal-worker ↔ pgbouncer (visibility)`   | Worker visibility store (via pool).         |
-| `temporal-admin ↔ temporal-frontend`         | Schema management for frontend.             |
-| `temporal-admin ↔ temporal-history`          | Schema management for history.              |
-| `temporal-admin ↔ temporal-matching`         | Schema management for matching.             |
-| `temporal-admin ↔ temporal-worker`           | Schema management for worker.               |
-| `temporal-frontend ↔ temporal-ui`            | UI access integration.                      |
-| `temporal-frontend ↔ temporal-ui` (temporal-host-info) | Frontend gRPC host and port for temporal-ui-k8s|
-| `temporal-frontend ↔ temporal-admin` (temporal-host-info) | Frontend gRPC host and port for temporal-admin-k8s|
-| _(Optional)_ `otel-collector ↔ temporal-*`   | Metrics integration when COS is enabled.    |
+| Integration                                               | Purpose                                            |
+| --------------------------------------------------------- | -------------------------------------------------- |
+| `pgbouncer ↔ postgresql`                                  | PgBouncer backend connection to PostgreSQL.        |
+| `temporal-frontend ↔ pgbouncer`                           | Main database connection (via pool).               |
+| `temporal-frontend ↔ pgbouncer (visibility)`              | Visibility database connection (via pool).         |
+| `temporal-history ↔ pgbouncer`                            | History persistence (via pool).                    |
+| `temporal-history ↔ pgbouncer (visibility)`               | History visibility store (via pool).               |
+| `temporal-matching ↔ pgbouncer`                           | Matching persistence (via pool).                   |
+| `temporal-matching ↔ pgbouncer (visibility)`              | Matching visibility store (via pool).              |
+| `temporal-worker ↔ pgbouncer`                             | Worker persistence (via pool).                     |
+| `temporal-worker ↔ pgbouncer (visibility)`                | Worker visibility store (via pool).                |
+| `temporal-admin ↔ temporal-frontend`                      | Schema management for frontend.                    |
+| `temporal-admin ↔ temporal-history`                       | Schema management for history.                     |
+| `temporal-admin ↔ temporal-matching`                      | Schema management for matching.                    |
+| `temporal-admin ↔ temporal-worker`                        | Schema management for worker.                      |
+| `temporal-frontend ↔ temporal-ui`                         | UI access integration.                             |
+| `temporal-frontend ↔ temporal-ui` (temporal-host-info)    | Frontend gRPC host and port for temporal-ui-k8s    |
+| `temporal-frontend ↔ temporal-admin` (temporal-host-info) | Frontend gRPC host and port for temporal-admin-k8s |
+| _(Optional)_ `otel-collector ↔ temporal-*`                | Metrics integration when COS is enabled.           |
 
 ---
 
@@ -173,7 +173,7 @@ Paths are relative to `modules/charmed-temporal`.
 - The Temporal Server charm requires the `num-history-shards` configuration to be set to a positive power of two (e.g., `1`, `2`, `4`).  
   This module provides a default of `"1"` to ensure smooth deployment.
 - The Temporal Worker is pre-provisioned for activity execution.
-- Revisions default to `null`, meaning the latest charm revision for the given channel will be used automatically.
+- Charm `revision` optional defaults: `0` for `postgresql`, `temporal_server`, `temporal_ui`, and `temporal_admin`; `null` for `pgbouncer`. For `pgbouncer`, `null` means unpinned (latest for the channel).
 - `existing_otel_collector_name` is only used when `cos_configuration=true`. If set without COS enabled, it will be ignored.
 - Ensure outbound connectivity from your cluster to `api.charmhub.io` for charm downloads.
 

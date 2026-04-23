@@ -137,7 +137,7 @@ test-cos:
 
     just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    just wait-for-active
 
     juju wait-for application otel-collector --model temporal-test --timeout=300s || true
 
@@ -161,6 +161,6 @@ test-cos-existing:
 
     just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    just wait-for-active
 
     just goss-cos
