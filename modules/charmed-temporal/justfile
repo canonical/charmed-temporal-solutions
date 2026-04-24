@@ -60,23 +60,34 @@ destroy variables_file:
 
     sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}" || true
 
-# Wait for all applications in temporal-test to reach active status
-wait-for-active:
+# Wait for all applications in temporal-test to reach active status.
+# Pass application names as positional args to exclude them from the active check
+# (e.g. otel-collector, which is expected to stay blocked until the consumer wires their COS).
+wait-for-active *excluded:
     #!/usr/bin/env bash
     set -euxo pipefail
+
+    query='forEach(applications, app => app.status == "active")'
+    if [ -n "{{ excluded }}" ]; then
+        clause=""
+        for app in {{ excluded }}; do
+            clause="${clause:+$clause || }app.name == \"$app\""
+        done
+        query="forEach(applications, app => ($clause) || app.status == \"active\")"
+    fi
 
     timeout=1200
     elapsed=0
     interval=10
     while [ $elapsed -lt $timeout ]; do
         if juju wait-for model temporal-test \
-            --query='forEach(applications, app => app.status == "active")' \
+            --query="$query" \
             --timeout=${interval}s 2>/dev/null; then
             exit 0
         fi
         elapsed=$((elapsed + interval))
     done
-    echo "Timed out waiting for all applications to become active"
+    echo "Timed out waiting for applications (excluding: {{ excluded }}) to become active"
     exit 1
 
 # Apply with a base variables file and an overlay variables file
@@ -137,9 +148,14 @@ test-cos:
 
     just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"
 
-    just wait-for-active
-
-    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
+    # otel-collector is expected to end up blocked on the mandatory-relation pair check:
+    # `metrics-endpoint` has peers but `send-remote-write`/`cloud-config` don't. The sink
+    # is the consumer's responsibility, so we assert the specific blocked message rather
+    # than treating it as a failure. Workload health is validated separately via goss-cos.
+    just wait-for-active otel-collector
+    juju wait-for unit otel-collector/0 --model temporal-test \
+        --query="workload-status==\"blocked\" && workload-message==\"['cloud-config']|['send-remote-write'] for metrics-endpoint\"" \
+        --timeout=300s
 
     just goss-cos
 
@@ -157,10 +173,20 @@ test-cos-existing:
     just validate_test_tfvars "./test/terraform_test.tfvars"
 
     juju deploy opentelemetry-collector-k8s otel-collector --channel=2/stable --trust -m temporal-test
-    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
+    # Before the module adds metrics-endpoint integrations, the bare collector has no mandatory
+    # pairs missing and should reach active on its own.
+    juju wait-for application otel-collector --model temporal-test \
+        --query='status=="active"' --timeout=300s
 
     just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
 
-    just wait-for-active
+    # After apply, the four temporal ↔ otel-collector `metrics-endpoint` relations exist but
+    # no `send-remote-write`/`cloud-config` peer does, so the charm's mandatory-pair check
+    # blocks the unit by design. Assert the exact blocked message to document the contract:
+    # the COS sink is the consumer's responsibility.
+    just wait-for-active otel-collector
+    juju wait-for unit otel-collector/0 --model temporal-test \
+        --query="workload-status==\"blocked\" && workload-message==\"['cloud-config']|['send-remote-write'] for metrics-endpoint\"" \
+        --timeout=300s
 
     just goss-cos
