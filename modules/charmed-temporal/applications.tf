@@ -5,9 +5,22 @@ module "postgresql" {
   app_name   = var.postgresql.app_name
   channel    = var.postgresql.channel
   # Override base to ubuntu@22.04 as 14/stable only supports 22.04 (rev742 defaults to 24.04).
-  base       = var.postgresql.base
-  units      = var.postgresql.units
-  config     = var.postgresql.config
+  base   = var.postgresql.base
+  units  = var.postgresql.units
+  config = var.postgresql.config
+}
+
+resource "juju_application" "pgbouncer" {
+  name       = var.pgbouncer.app_name
+  model_uuid = var.model_uuid
+  trust      = true
+  units      = var.pgbouncer.units
+  config     = var.pgbouncer.config
+  charm {
+    name     = "pgbouncer-k8s"
+    channel  = var.pgbouncer.channel
+    revision = var.pgbouncer.revision
+  }
 }
 
 module "temporal_frontend" {

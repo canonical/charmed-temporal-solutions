@@ -13,13 +13,13 @@ initialize:
 
 # Destroy model if exists
 destroy-model:
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
 
 # Add a fresh model
 add-model: (destroy-model)
     juju add-model temporal-test
 
-[private]
+# Appends model_uuid to variables_file (does not copy). Requires Juju model temporal-test.
 validate_test_tfvars variables_file:
     #!/usr/bin/bash
 
@@ -28,7 +28,8 @@ validate_test_tfvars variables_file:
     if ! juju show-model "${MODEL_UUID}" >/dev/null 2>&1; then
         exit 1
     fi
-    echo "model_uuid = \"${MODEL_UUID}\"" > "${variables_file}"
+    echo >> "${variables_file}"
+    echo "model_uuid = \"${MODEL_UUID}\"" >> "${variables_file}"
 
 # Terraform fmt
 fmt: (initialize)
@@ -53,11 +54,41 @@ destroy variables_file:
     if [ ! -f "${variables_file}" ]; then
         exit 1
     fi
-    terraform destroy -auto-approve -var-file="${variables_file}" || true
+    terraform destroy -auto-approve -parallelism=1 -var-file="${variables_file}" || true
     echo "Forcing model cleanup..."
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
 
-    rm "${variables_file}"
+    sed -i '/^model_uuid[[:space:]]*=/d' "${variables_file}" || true
+
+# Wait for all applications in temporal-test to reach active status.
+# Pass application names as positional args to exclude them from the active check
+# (e.g. otel-collector, which is expected to stay blocked until the consumer wires their COS).
+wait-for-active *excluded:
+    #!/usr/bin/env bash
+    set -euxo pipefail
+
+    query='forEach(applications, app => app.status == "active")'
+    if [ -n "{{ excluded }}" ]; then
+        clause=""
+        for app in {{ excluded }}; do
+            clause="${clause:+$clause || }app.name == \"$app\""
+        done
+        query="forEach(applications, app => ($clause) || app.status == \"active\")"
+    fi
+
+    timeout=1200
+    elapsed=0
+    interval=10
+    while [ $elapsed -lt $timeout ]; do
+        if juju wait-for model temporal-test \
+            --query="$query" \
+            --timeout=${interval}s 2>/dev/null; then
+            exit 0
+        fi
+        elapsed=$((elapsed + interval))
+    done
+    echo "Timed out waiting for applications (excluding: {{ excluded }}) to become active"
+    exit 1
 
 # Apply with a base variables file and an overlay variables file
 apply-with-overlay base_file overlay_file: (initialize)
@@ -69,8 +100,8 @@ destroy-with-overlay base_file overlay_file:
     set -euxo pipefail
     terraform destroy -auto-approve -var-file="${base_file}" -var-file="${overlay_file}" || true
     echo "Forcing model cleanup..."
-    juju destroy-model --no-prompt --destroy-storage temporal-test || true
-    rm -f "${base_file}"
+    juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
+    sed -i '/^model_uuid[[:space:]]*=/d' "${base_file}" || true
 
 # Port-forward otel-collector and run goss COS tests
 [private]
@@ -82,37 +113,49 @@ goss-cos:
     trap 'kill ${PF_PID} 2>/dev/null || true' EXIT
     GOSS_FILE=test/goss-cos.yaml goss validate --retry-timeout 30s
 
-# Full test (create model, apply, wait, cleanup)
+# Full test (create model, apply, wait for all apps active, cleanup)
 test:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy "terraform_test.tfvars"' EXIT
+    trap 'just destroy "./test/terraform_test.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    # Fresh model UUID each run; stale terraform.tfstate still references the old model → refresh fails.
+    rm -f terraform.tfstate terraform.tfstate.backup
 
-    just apply "terraform_test.tfvars"
+    just validate_test_tfvars "./test/terraform_test.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    just apply "./test/terraform_test.tfvars"
+
+    just wait-for-active
+
+    juju status || true
 
 # Full test for COS with module-deployed opentelemetry-collector-k8s
 test-cos:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"' EXIT
+    trap 'just destroy-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    rm -f terraform.tfstate terraform.tfstate.backup
 
-    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos.tfvars"
+    just validate_test_tfvars "./test/terraform_test.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos.tfvars"
 
-    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
+    # otel-collector is expected to end up blocked on the mandatory-relation pair check:
+    # `metrics-endpoint` has peers but `send-remote-write`/`cloud-config` don't. The sink
+    # is the consumer's responsibility, so we assert the specific blocked message rather
+    # than treating it as a failure. Workload health is validated separately via goss-cos.
+    just wait-for-active otel-collector
+    juju wait-for unit otel-collector/0 --model temporal-test \
+        --query="workload-status==\"blocked\" && workload-message==\"['cloud-config']|['send-remote-write'] for metrics-endpoint\"" \
+        --timeout=300s
 
     just goss-cos
 
@@ -121,17 +164,29 @@ test-cos-existing:
     #!/usr/bin/bash
     set -euxo pipefail
 
-    trap 'just destroy-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"' EXIT
+    trap 'just destroy-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"' EXIT
 
     just add-model
 
-    just validate_test_tfvars "terraform_test.tfvars"
+    rm -f terraform.tfstate terraform.tfstate.backup
+
+    just validate_test_tfvars "./test/terraform_test.tfvars"
 
     juju deploy opentelemetry-collector-k8s otel-collector --channel=2/stable --trust -m temporal-test
-    juju wait-for application otel-collector --model temporal-test --timeout=300s || true
+    # Before the module adds metrics-endpoint integrations, the bare collector has no mandatory
+    # pairs missing and should reach active on its own.
+    juju wait-for application otel-collector --model temporal-test \
+        --query='status=="active"' --timeout=300s
 
-    just apply-with-overlay "terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
+    just apply-with-overlay "./test/terraform_test.tfvars" "test/terraform_cos_existing.tfvars"
 
-    juju wait-for model temporal-test --timeout=600s || true
+    # After apply, the four temporal ↔ otel-collector `metrics-endpoint` relations exist but
+    # no `send-remote-write`/`cloud-config` peer does, so the charm's mandatory-pair check
+    # blocks the unit by design. Assert the exact blocked message to document the contract:
+    # the COS sink is the consumer's responsibility.
+    just wait-for-active otel-collector
+    juju wait-for unit otel-collector/0 --model temporal-test \
+        --query="workload-status==\"blocked\" && workload-message==\"['cloud-config']|['send-remote-write'] for metrics-endpoint\"" \
+        --timeout=300s
 
     just goss-cos

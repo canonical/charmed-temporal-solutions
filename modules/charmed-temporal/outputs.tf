@@ -1,7 +1,8 @@
 output "applications" {
   description = "All charm modules which make up this product module."
   value = {
-    postgresql = module.postgresql
+    postgresql  = module.postgresql
+    pgbouncer   = juju_application.pgbouncer
     temporal = {
       frontend = module.temporal_frontend
       history  = module.temporal_history

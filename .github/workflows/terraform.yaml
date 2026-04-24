@@ -15,4 +15,4 @@ jobs:
     with:
       module-directory: ./modules/charmed-temporal
       just-targets: '["test", "test-cos", "test-cos-existing"]'
-      timeout-minutes: 60
+      timeout-minutes: 120
