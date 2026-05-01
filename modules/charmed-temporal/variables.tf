@@ -7,7 +7,7 @@ variable "temporal_server" {
   description = "Inputs for temporal-k8s charm module."
   type = object({
     app_name = optional(string, "temporal-server")
-    channel  = optional(string, "1.23/edge")
+    channel  = optional(string, "1.23/stable")
     revision = optional(number, 0)
     units    = optional(number, 1)
     config   = optional(map(string), { num-history-shards = "1" })
@@ -33,7 +33,7 @@ variable "temporal_ui" {
   description = "Inputs for temporal-ui-k8s charm module."
   type = object({
     app_name = optional(string, "temporal-ui")
-    channel  = optional(string, "1.23/edge")
+    channel  = optional(string, "1.23/stable")
     revision = optional(number, 0)
     units    = optional(number, 1)
     config   = optional(map(string), {})
@@ -45,7 +45,7 @@ variable "temporal_admin" {
   description = "Inputs for temporal-admin-k8s charm module."
   type = object({
     app_name = optional(string, "temporal-admin")
-    channel  = optional(string, "1.23/edge")
+    channel  = optional(string, "1.23/stable")
     revision = optional(number, 0)
     units    = optional(number, 1)
     config   = optional(map(string), {})
