@@ -1,0 +1,37 @@
+# Goss tests asserting each temporal-k8s workload is actually running
+# as the single microservice implied by its application name, rather
+# than all services in one monolithic process. Inspects the effective
+# pebble plan inside each unit's "temporal" container.
+command:
+  temporal-frontend-service:
+    exec: "kubectl exec -n temporal-test temporal-frontend-0 -c temporal -- pebble plan"
+    exit-status: 0
+    timeout: 10000
+    stdout:
+      - "--service=frontend"
+      - "--service=internal-frontend"
+    stderr: []
+
+  temporal-history-service:
+    exec: "kubectl exec -n temporal-test temporal-history-0 -c temporal -- pebble plan"
+    exit-status: 0
+    timeout: 10000
+    stdout:
+      - "--service=history"
+    stderr: []
+
+  temporal-matching-service:
+    exec: "kubectl exec -n temporal-test temporal-matching-0 -c temporal -- pebble plan"
+    exit-status: 0
+    timeout: 10000
+    stdout:
+      - "--service=matching"
+    stderr: []
+
+  temporal-worker-service:
+    exec: "kubectl exec -n temporal-test temporal-worker-0 -c temporal -- pebble plan"
+    exit-status: 0
+    timeout: 10000
+    stdout:
+      - "--service=worker"
+    stderr: []

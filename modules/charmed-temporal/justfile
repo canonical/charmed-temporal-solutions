@@ -103,6 +103,13 @@ destroy-with-overlay base_file overlay_file:
     juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
     sed -i '/^model_uuid[[:space:]]*=/d' "${base_file}" || true
 
+# Run goss tests asserting each temporal-k8s unit runs only its configured service
+[private]
+goss-services:
+    #!/usr/bin/bash
+    set -euxo pipefail
+    GOSS_FILE=test/goss-services.yaml goss validate --retry-timeout 30s
+
 # Port-forward otel-collector and run goss COS tests
 [private]
 goss-cos:
@@ -130,6 +137,8 @@ test:
     just apply "./test/terraform_test.tfvars"
 
     just wait-for-active
+
+    just goss-services
 
     juju status || true
 

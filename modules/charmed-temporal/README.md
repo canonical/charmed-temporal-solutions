@@ -44,6 +44,8 @@ The solution module exposes the following configurable inputs:
 
 Each of the charm input objects (`postgresql`, `pgbouncer`, `temporal_server`, `temporal_ui`, `temporal_admin`) supports the following fields:
 
+> **Note:** For `temporal_server`, the `services` config option of the `temporal-k8s` charm is set automatically per application (`temporal-frontend` → `frontend`, `temporal-history` → `history`, `temporal-matching` → `matching`, `temporal-worker` → `worker`) so that each deploys as an independent microservice. Any `services` value supplied via `temporal_server.config` is overridden.
+
 | Field                | Type                   | Description                                                | Default                                                                                              |
 | -------------------- | ---------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `app_name`           | string                 | Application name to deploy                                 | Charm-specific                                                                                       |
