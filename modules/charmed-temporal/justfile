@@ -18,6 +18,10 @@ destroy-model:
 # Add a fresh model
 add-model: (destroy-model)
     juju add-model temporal-test
+    # Concierge's k8s preset bootstraps with automatically-retry-hooks=false;
+    # We need to override the retry hooks setting to workaround the following:
+    # https://github.com/canonical/temporal-k8s-operator/issues/133
+    juju model-config -m temporal-test automatically-retry-hooks=true
 
 # Appends model_uuid to variables_file (does not copy). Requires Juju model temporal-test.
 validate_test_tfvars variables_file:
@@ -76,7 +80,11 @@ wait-for-active *excluded:
         query="forEach(applications, app => ($clause) || app.status == \"active\")"
     fi
 
-    timeout=1200
+    # Raised to 2400s so Juju's automatic-hook-retry has time to self-heal the
+    # temporal servers, which transiently fail `db-relation-changed` on a cold
+    # deploy until temporal-admin finishes DB schema setup. See:
+    # https://github.com/canonical/temporal-k8s-operator/issues/133
+    timeout=2400
     elapsed=0
     interval=10
     while [ $elapsed -lt $timeout ]; do
@@ -102,6 +110,13 @@ destroy-with-overlay base_file overlay_file:
     echo "Forcing model cleanup..."
     juju destroy-model temporal-test --no-prompt --destroy-storage --force || true
     sed -i '/^model_uuid[[:space:]]*=/d' "${base_file}" || true
+
+# Run goss tests asserting each temporal-k8s unit runs only its configured service
+[private]
+goss-services:
+    #!/usr/bin/bash
+    set -euxo pipefail
+    GOSS_FILE=test/goss-services.yaml goss validate --retry-timeout 30s
 
 # Port-forward otel-collector and run goss COS tests
 [private]
@@ -130,6 +145,8 @@ test:
     just apply "./test/terraform_test.tfvars"
 
     just wait-for-active
+
+    just goss-services
 
     juju status || true
 

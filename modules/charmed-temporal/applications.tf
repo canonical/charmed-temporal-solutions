@@ -29,7 +29,7 @@ module "temporal_frontend" {
   app_name   = "temporal-frontend"
   channel    = var.temporal_server.channel
   units      = var.temporal_server.units
-  config     = var.temporal_server.config
+  config     = merge(var.temporal_server.config, { services = "frontend" })
 }
 
 module "temporal_history" {
@@ -38,7 +38,7 @@ module "temporal_history" {
   app_name   = "temporal-history"
   channel    = var.temporal_server.channel
   units      = var.temporal_server.units
-  config     = var.temporal_server.config
+  config     = merge(var.temporal_server.config, { services = "history" })
 }
 
 module "temporal_matching" {
@@ -47,7 +47,7 @@ module "temporal_matching" {
   app_name   = "temporal-matching"
   channel    = var.temporal_server.channel
   units      = var.temporal_server.units
-  config     = var.temporal_server.config
+  config     = merge(var.temporal_server.config, { services = "matching" })
 }
 
 module "temporal_worker" {
@@ -56,7 +56,7 @@ module "temporal_worker" {
   app_name   = "temporal-worker"
   channel    = var.temporal_server.channel
   units      = var.temporal_server.units
-  config     = var.temporal_server.config
+  config     = merge(var.temporal_server.config, { services = "worker" })
 }
 
 module "temporal_ui" {

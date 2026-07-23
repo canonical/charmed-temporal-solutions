@@ -44,6 +44,8 @@ The solution module exposes the following configurable inputs:
 
 Each of the charm input objects (`postgresql`, `pgbouncer`, `temporal_server`, `temporal_ui`, `temporal_admin`) supports the following fields:
 
+> **Note:** For `temporal_server`, the `services` config option of the `temporal-k8s` charm is set automatically per application (`temporal-frontend` → `frontend`, `temporal-history` → `history`, `temporal-matching` → `matching`, `temporal-worker` → `worker`) so that each deploys as an independent microservice. Any `services` value supplied via `temporal_server.config` is overridden.
+
 | Field                | Type                   | Description                                                | Default                                                                                              |
 | -------------------- | ---------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `app_name`           | string                 | Application name to deploy                                 | Charm-specific                                                                                       |
@@ -161,7 +163,7 @@ Paths are relative to `modules/charmed-temporal`.
 
 ### Local / CI test flow
 
-`just test` runs `add-model`, removes local `terraform.tfstate` (so the new model UUID never clashes with a previous run), `validate_test_tfvars`, `apply`, then **`just wait-for-active`** (polls until every application in `temporal-test` is `active`, up to 20 minutes). It registers `just destroy` on exit so the model and tfvars line are cleaned up.
+`just test` runs `add-model`, removes local `terraform.tfstate` (so the new model UUID never clashes with a previous run), `validate_test_tfvars`, `apply`, then **`just wait-for-active`** (polls until every application in `temporal-test` is `active`, up to 40 minutes). It registers `just destroy` on exit so the model and tfvars line are cleaned up.
 
 ---
 
