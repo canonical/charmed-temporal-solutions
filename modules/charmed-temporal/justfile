@@ -76,7 +76,11 @@ wait-for-active *excluded:
         query="forEach(applications, app => ($clause) || app.status == \"active\")"
     fi
 
-    timeout=1200
+    # Raised to 2400s so Juju's automatic-hook-retry has time to self-heal the
+    # temporal servers, which transiently fail `db-relation-changed` on a cold
+    # deploy until temporal-admin finishes DB schema setup. See:
+    # https://github.com/canonical/temporal-k8s-operator/issues/133
+    timeout=2400
     elapsed=0
     interval=10
     while [ $elapsed -lt $timeout ]; do

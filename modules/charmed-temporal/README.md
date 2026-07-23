@@ -163,7 +163,7 @@ Paths are relative to `modules/charmed-temporal`.
 
 ### Local / CI test flow
 
-`just test` runs `add-model`, removes local `terraform.tfstate` (so the new model UUID never clashes with a previous run), `validate_test_tfvars`, `apply`, then **`just wait-for-active`** (polls until every application in `temporal-test` is `active`, up to 20 minutes). It registers `just destroy` on exit so the model and tfvars line are cleaned up.
+`just test` runs `add-model`, removes local `terraform.tfstate` (so the new model UUID never clashes with a previous run), `validate_test_tfvars`, `apply`, then **`just wait-for-active`** (polls until every application in `temporal-test` is `active`, up to 40 minutes). It registers `just destroy` on exit so the model and tfvars line are cleaned up.
 
 ---
 
