@@ -18,8 +18,8 @@ destroy-model:
 # Add a fresh model
 add-model: (destroy-model)
     juju add-model temporal-test
-    # Concierge's k8s preset bootstraps with automatically-retry-hooks=false; re-enable so the
-    # temporal servers self-heal the transient db-relation-changed failure on a cold deploy. See:
+    # Concierge's k8s preset bootstraps with automatically-retry-hooks=false;
+    # We need to override the retry hooks setting to workaround the following:
     # https://github.com/canonical/temporal-k8s-operator/issues/133
     juju model-config -m temporal-test automatically-retry-hooks=true
 
