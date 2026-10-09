@@ -24,7 +24,7 @@ resource "juju_application" "pgbouncer" {
 }
 
 module "temporal_frontend" {
-  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = "temporal-frontend"
   channel    = var.temporal_server.channel
@@ -33,7 +33,7 @@ module "temporal_frontend" {
 }
 
 module "temporal_history" {
-  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = "temporal-history"
   channel    = var.temporal_server.channel
@@ -42,7 +42,7 @@ module "temporal_history" {
 }
 
 module "temporal_matching" {
-  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = "temporal-matching"
   channel    = var.temporal_server.channel
@@ -51,7 +51,7 @@ module "temporal_matching" {
 }
 
 module "temporal_worker" {
-  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = "temporal-worker"
   channel    = var.temporal_server.channel
@@ -60,7 +60,7 @@ module "temporal_worker" {
 }
 
 module "temporal_ui" {
-  source     = "git::https://github.com/canonical/temporal-ui-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-ui-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = var.temporal_ui.app_name
   channel    = var.temporal_ui.channel
@@ -69,7 +69,7 @@ module "temporal_ui" {
 }
 
 module "temporal_admin" {
-  source     = "git::https://github.com/canonical/temporal-admin-k8s-operator//terraform?ref=track/1.23"
+  source     = "git::https://github.com/canonical/temporal-admin-k8s-operator//terraform?ref=track/1.31"
   model_uuid = var.model_uuid
   app_name   = var.temporal_admin.app_name
   channel    = var.temporal_admin.channel
