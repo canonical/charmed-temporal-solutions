@@ -66,7 +66,9 @@ Upon apply, this module exports the following outputs:
 | `applications`                   | Map containing all charm modules that make up the Charmed Temporal deployment     |
 | `frontend_certificates_requirer` | Map with `app_name` and `requires` endpoint for TLS certificates                  |
 | `server_nginx_route_requirer`    | Map with `app_name` and `requires` endpoint for Temporal Server's NGINX route     |
+| `server_ingress_requirer`        | Map with `app_name` and `requires` endpoint for Temporal Server's ingress         |
 | `ui_nginx_route_requirer`        | Map with `app_name` and `requires` endpoint for Temporal UI's NGINX route         |
+| `ui_ingress_requirer`            | Map with `app_name` and `requires` endpoint for Temporal UI's ingress             |
 | `openfga_requirer`               | Map with `app_name` and `requires` endpoint for OpenFGA                           |
 | `s3_integrator_requirer`         | Map with `app_name` and `requires` endpoint for the S3 integrator charm           |
 | `otel_collector_k8s`             | Map containing the deployed or reused OpenTelemetry Collector when COS is enabled |
