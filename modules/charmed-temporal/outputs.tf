@@ -31,12 +31,28 @@ output "server_nginx_route_requirer" {
   }
 }
 
+output "server_ingress_requirer" {
+  description = "Map containing the app_name and ingress requires endpoint for Temporal Server."
+  value = {
+    app_name = module.temporal_frontend.app_name
+    requires = module.temporal_frontend.requires.ingress
+  }
+}
+
 # Requirers exposed by Temporal UI
 output "ui_nginx_route_requirer" {
   description = "Map containing the app_name and the requires of the nginx route requirer charm (UI)."
   value = {
     app_name = var.temporal_ui.app_name
     requires = module.temporal_ui.requires.nginx_route
+  }
+}
+
+output "ui_ingress_requirer" {
+  description = "Map containing the app_name and ingress requires endpoint for Temporal UI."
+  value = {
+    app_name = module.temporal_ui.app_name
+    requires = module.temporal_ui.requires.ingress
   }
 }
 
