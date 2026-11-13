@@ -1,10 +1,10 @@
 module "postgresql" {
-  # rev742 is the latest charm revision for postgresql-k8s 16/edge.
-  source     = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=rev742"
+  # rev977 is the latest charm revision for postgresql-k8s 16/edge.
+  source     = "git::https://github.com/canonical/postgresql-k8s-operator//terraform?ref=rev977"
   juju_model = var.model_uuid
   app_name   = var.postgresql.app_name
   channel    = var.postgresql.channel
-  # Override base to ubuntu@22.04 as 14/stable only supports 22.04 (rev742 defaults to 24.04).
+  # Override base to ubuntu@22.04 as 14/stable only supports 22.04 (rev977 defaults to 24.04).
   base   = var.postgresql.base
   units  = var.postgresql.units
   config = var.postgresql.config
